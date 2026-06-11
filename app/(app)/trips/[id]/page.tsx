@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowLeft, MapPin, Users, Copy, Check, Navigation,
-  Map, Receipt, CheckSquare, Plane, Globe, Lock
+  Map, Receipt, CheckSquare, Plane, Globe, Lock, Trash2
 } from 'lucide-react'
 import { format, differenceInDays, parseISO } from 'date-fns'
 import { th } from 'date-fns/locale'
@@ -92,6 +92,22 @@ export default function TripOverviewPage() {
         >
           <ArrowLeft size={20} className="text-white" />
         </button>
+
+        {/* Delete button (host only) */}
+        {isHost && (
+          <button
+            onClick={async () => {
+              if (!confirm('ลบทริปนี้? ข้อมูลทั้งหมดจะหายถาวร')) return
+              const supabase = createClient()
+              const { error } = await supabase.from('trips').delete().eq('id', id)
+              if (error) { alert('ลบไม่สำเร็จ: ' + error.message); return }
+              router.push('/dashboard')
+            }}
+            className="absolute top-safe right-4 mt-4 w-10 h-10 rounded-2xl glass flex items-center justify-center active:scale-90 border border-red-500/30"
+          >
+            <Trash2 size={18} className="text-red-400" />
+          </button>
+        )}
 
         {/* Trip info overlay */}
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
