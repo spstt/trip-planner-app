@@ -97,7 +97,7 @@ export default function ChecklistPage() {
   const checkedCount = items.filter(i => i.is_checked).length
 
   return (
-    <div className="px-4 pt-4 space-y-4">
+    <div className="px-4 pt-4 space-y-4 pb-6">
       <div>
         <h2 className="text-xl font-bold text-white">รายการของต้องเตรียม</h2>
         <p className="text-slate-500 text-sm mt-0.5">

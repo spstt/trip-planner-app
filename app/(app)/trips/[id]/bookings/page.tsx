@@ -41,7 +41,7 @@ export default function BookingsPage() {
   const filtered = filter === 'all' ? bookings : bookings.filter(b => b.category === filter)
 
   return (
-    <div className="px-4 pt-4 space-y-4">
+    <div className="px-4 pt-4 space-y-4 pb-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white">ตั๋วและการจอง</h2>

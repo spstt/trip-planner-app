@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Map, List, ArrowLeft } from 'lucide-react'
+import { Map, List } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils/cn'
 import { format, parseISO } from 'date-fns'
@@ -82,14 +82,8 @@ export default function ItineraryPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 pt-4 pb-2 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
-          <button onClick={() => router.back()} className="w-8 h-8 rounded-xl glass flex items-center justify-center active:scale-90">
-            <ArrowLeft size={16} className="text-white" />
-          </button>
-          <h2 className="text-lg font-bold text-white">แผนการเดินทาง</h2>
-        </div>
+      {/* View toggle */}
+      <div className="px-4 pt-3 pb-2 flex items-center justify-end shrink-0">
         <div className="flex bg-slate-900 rounded-xl p-1">
           <button
             onClick={() => setView('timeline')}

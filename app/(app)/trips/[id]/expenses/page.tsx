@@ -100,7 +100,7 @@ export default function ExpensesPage() {
   const myDebts = debts.filter(d => d.from === currentUserId || d.to === currentUserId)
 
   return (
-    <div className="px-4 pt-4 space-y-4">
+    <div className="px-4 pt-4 space-y-4 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

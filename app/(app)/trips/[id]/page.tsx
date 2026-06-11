@@ -3,14 +3,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
-import Link from 'next/link'
-import {
-  ArrowLeft, MapPin, Users, Copy, Check, Navigation,
-  Map, Receipt, CheckSquare, Plane, Globe, Lock, Trash2
-} from 'lucide-react'
+import { MapPin, Users, Globe, Lock, Trash2 } from 'lucide-react'
 import { toast } from '@/components/ui/Toast'
-import { format, differenceInDays, parseISO } from 'date-fns'
-import { th } from 'date-fns/locale'
+import { parseISO, differenceInDays } from 'date-fns'
 import type { Trip, TripMember, Profile } from '@/types'
 import WeatherWidget from '@/components/trip/WeatherWidget'
 import CountdownTimer from '@/components/trip/CountdownTimer'
@@ -20,11 +15,11 @@ interface TripData extends Trip {
   trip_members: (TripMember & { profile: Profile })[]
 }
 
-const NAV_TABS = [
-  { href: 'itinerary', icon: Map,         label: 'แผน' },
-  { href: 'bookings',  icon: Plane,        label: 'ตั๋ว' },
-  { href: 'expenses',  icon: Receipt,      label: 'บัญชี' },
-  { href: 'checklist', icon: CheckSquare,  label: 'ของ' },
+const _NAV_TABS = [
+  { href: 'itinerary', label: 'แผน' },
+  { href: 'bookings',  label: 'ตั๋ว' },
+  { href: 'expenses',  label: 'บัญชี' },
+  { href: 'checklist', label: 'ของ' },
 ]
 
 export default function TripOverviewPage() {
@@ -85,14 +80,6 @@ export default function TripOverviewPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-black/20 to-transparent" />
         </div>
-
-        {/* Back button */}
-        <button
-          onClick={() => router.back()}
-          className="absolute top-safe left-4 mt-4 w-10 h-10 rounded-2xl glass flex items-center justify-center active:scale-90"
-        >
-          <ArrowLeft size={20} className="text-white" />
-        </button>
 
         {/* Delete button (host only) */}
         {isHost && (
@@ -186,20 +173,6 @@ export default function TripOverviewPage() {
           />
         )}
 
-        {/* Quick nav cards */}
-        <div className="grid grid-cols-2 gap-3">
-          {NAV_TABS.map(({ href, icon: Icon, label }) => (
-            <Link
-              key={href}
-              href={`/trips/${id}/${href}`}
-              className="glass rounded-2xl p-4 flex flex-col gap-2 active:scale-95 transition-transform border border-white/5"
-            >
-              <Icon size={22} className="text-indigo-400" />
-              <span className="text-sm font-medium text-slate-200">{label}</span>
-              <span className="text-xs text-slate-500">กด เพื่อดูรายละเอียด →</span>
-            </Link>
-          ))}
-        </div>
       </div>
     </div>
   )
