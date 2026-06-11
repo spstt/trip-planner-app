@@ -26,6 +26,18 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
     setForm(f => ({ ...f, [k]: v }))
   }
 
+  async function geocode(place: string): Promise<{ lat: number; lng: number } | null> {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'th,en' } }
+      )
+      const data = await res.json()
+      if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
+    } catch {}
+    return null
+  }
+
   async function handleCreate() {
     if (!form.name.trim() || !form.destination.trim()) return
     setLoading(true)
@@ -33,11 +45,16 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
 
+    // Geocode destination for weather + map
+    const coords = await geocode(form.destination.trim())
+
     const { data: trip, error } = await supabase
       .from('trips')
       .insert({
         name: form.name.trim(),
         destination: form.destination.trim(),
+        destination_lat: coords?.lat ?? null,
+        destination_lng: coords?.lng ?? null,
         start_date: form.start_date,
         end_date: form.end_date,
         is_international: form.is_international,
