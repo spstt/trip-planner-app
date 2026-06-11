@@ -81,18 +81,19 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats row — compact chips */}
       {!loading && trips.length > 0 && (
-        <div className="flex gap-3 mb-5">
-          {[
-            { n: upcoming.length, label: 'ทริปที่จะมา', accent: true },
-            { n: past.length,     label: 'ทริปที่ผ่านมา', accent: false },
-          ].map(({ n, label, accent }) => (
-            <div key={label} className={cn('flex-1 rounded-2xl px-4 py-3', accent ? 'bg-indigo-500/10 border border-indigo-500/20' : 'glass')}>
-              <p className={cn('text-2xl font-bold', accent ? 'text-indigo-400' : 'text-white')}>{n}</p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</p>
-            </div>
-          ))}
+        <div className="flex gap-2 mb-5">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
+            style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.25)' }}>
+            <span className="text-base font-black">{upcoming.length}</span> ทริปที่จะมา
+          </span>
+          {past.length > 0 && (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
+              style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', border: '1px solid var(--border)' }}>
+              <span className="text-base font-black">{past.length}</span> ที่ผ่านมา
+            </span>
+          )}
         </div>
       )}
 
