@@ -79,10 +79,10 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
     <div className="fixed inset-0 z-50 flex items-end">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full bottom-sheet spring-enter">
-        <div className="sheet-handle" />
+      <div className="relative w-full bottom-sheet spring-enter max-h-[90dvh] flex flex-col">
+        <div className="sheet-handle shrink-0" />
 
-        <div className="px-5 pb-8 pt-2 space-y-5">
+        <div className="px-5 pb-8 pt-2 space-y-5 overflow-y-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">สร้างทริปใหม่</h2>
             <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
