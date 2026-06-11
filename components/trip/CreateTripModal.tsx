@@ -94,6 +94,24 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
     }
     await supabase.from('itinerary_days').insert(days)
 
+    // Auto-suggest checklist items based on trip type
+    const sharedItems = form.is_international
+      ? ['พาสปอร์ต (ตรวจอายุไม่น้อยกว่า 6 เดือน)', 'วีซ่า (ถ้าต้องใช้)', 'ปลั๊กแปลงไฟ', 'เงินสกุลต่างประเทศ', 'ประกันการเดินทาง', 'ยาประจำตัว', 'กระเป๋าใบเล็กสำหรับวันทริป']
+      : ['บัตรประชาชน', 'ยาประจำตัว', 'กระเป๋าใบเล็กสำหรับวันทริป', 'อุปกรณ์ชาร์จโทรศัพท์', 'ร่ม / กันแดด']
+
+    if (sharedItems.length > 0) {
+      await supabase.from('checklist_items').insert(
+        sharedItems.map((title, i) => ({
+          trip_id: trip.id,
+          title,
+          is_shared: true,
+          owner_id: null,
+          created_by: user.id,
+          sort_order: i,
+        }))
+      )
+    }
+
     setLoading(false)
     onCreated(trip)
   }

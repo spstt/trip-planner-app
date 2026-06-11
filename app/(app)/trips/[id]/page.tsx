@@ -11,6 +11,7 @@ import type { Trip, TripMember, Profile } from '@/types'
 import WeatherWidget from '@/components/trip/WeatherWidget'
 import CountdownTimer from '@/components/trip/CountdownTimer'
 import InviteButton from '@/components/trip/InviteButton'
+import TripReadiness from '@/components/trip/TripReadiness'
 
 interface TripData extends Trip {
   trip_members: (TripMember & { profile: Profile })[]
@@ -173,6 +174,14 @@ export default function TripOverviewPage() {
             ))}
           </div>
         </div>
+
+        {/* Smart Readiness + Prompts */}
+        <TripReadiness
+          trip={trip}
+          members={trip.trip_members}
+          currentUserId={currentUserId}
+          isHost={isHost}
+        />
 
         {/* Weather */}
         {trip.destination_lat && trip.destination_lng && (
