@@ -39,7 +39,7 @@ export const useTripStore = create<TripState>((set) => ({
   setDays: (days) => set({ days }),
 
   addItem: (item) => set(state => ({
-    days: state.days.map(d =>
+    days: (state.days ?? []).map(d =>
       d.id === item.day_id
         ? { ...d, items: [...(d.items ?? []), item].sort((a, b) => a.sort_order - b.sort_order) }
         : d
@@ -47,14 +47,14 @@ export const useTripStore = create<TripState>((set) => ({
   })),
 
   updateItem: (id, patch) => set(state => ({
-    days: state.days.map(d => ({
+    days: (state.days ?? []).map(d => ({
       ...d,
       items: (d.items ?? []).map(i => i.id === id ? { ...i, ...patch } : i)
     }))
   })),
 
   removeItem: (id) => set(state => ({
-    days: state.days.map(d => ({
+    days: (state.days ?? []).map(d => ({
       ...d,
       items: (d.items ?? []).filter(i => i.id !== id)
     }))

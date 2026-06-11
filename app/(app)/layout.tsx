@@ -6,11 +6,10 @@ import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from '@/components/ui/Toast'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', icon: Home,        label: 'หน้าแรก' },
-  { href: '/explore',  icon: MapPin,       label: 'สำรวจ' },
-  { href: '/expenses', icon: Receipt,      label: 'บัญชี' },
-  { href: '/packing',  icon: CheckSquare,  label: 'เตรียมของ' },
-  { href: '/profile',  icon: User,         label: 'ฉัน' },
+  { href: '/dashboard', icon: Home,        label: 'ทริป' },
+  { href: '/explore',   icon: MapPin,      label: 'สำรวจ' },
+  { href: '/packing',   icon: CheckSquare, label: 'เตรียมของ' },
+  { href: '/profile',   icon: User,        label: 'ฉัน' },
 ]
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
