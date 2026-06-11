@@ -76,7 +76,7 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-x-0 top-0 bottom-0 z-50 flex items-end" style={{ paddingBottom: 'calc(var(--nav-height) + var(--safe-bottom))' }}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative w-full bottom-sheet spring-enter max-h-[85vh] flex flex-col">
