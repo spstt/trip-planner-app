@@ -54,92 +54,124 @@ export default function DashboardPage() {
   const display = tab === 'upcoming' ? upcoming : past
 
   return (
-    <div className="px-5 pt-5 pb-2">
+    <div style={{ minHeight: '100%', position: 'relative' }}>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>{getGreeting()}</p>
-          <h1 className="text-2xl font-bold text-white mt-0.5 tracking-tight">
-            {profile?.display_name?.split(' ')[0] || 'ทริปของฉัน'}
-          </h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-500/40 bg-indigo-600 shrink-0">
-            {profile?.avatar_url
-              ? <Image src={profile.avatar_url} alt="" width={40} height={40} className="w-full h-full object-cover" />
-              : <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">{profile?.display_name?.[0]?.toUpperCase() ?? '?'}</div>
-            }
+      {/* Ambient background glow */}
+      <div style={{ position: 'fixed', top: '-20%', right: '-10%', width: '70vw', height: '50vh', background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 65%)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'fixed', bottom: '15%', left: '-15%', width: '50vw', height: '40vh', background: 'radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 65%)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+
+      <div style={{ position: 'relative', zIndex: 1, padding: '20px 20px 8px' }}>
+
+        {/* ── Header ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--t3)', marginBottom: 2 }}>{getGreeting()}</p>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--t1)', letterSpacing: '-0.03em', lineHeight: 1 }}>
+              {profile?.display_name?.split(' ')[0] || 'ทริปของฉัน'}
+            </h1>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="pressable w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30"
-            style={{ background: 'linear-gradient(135deg,#6366f1,#a855f7)' }}
-          >
-            <Plus size={22} className="text-white" strokeWidth={2.5} />
-          </button>
-        </div>
-      </div>
 
-      {/* Stats row — compact chips */}
-      {!loading && trips.length > 0 && (
-        <div className="flex gap-2 mb-5">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
-            style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.25)' }}>
-            <span className="text-base font-black">{upcoming.length}</span> ทริปที่จะมา
-          </span>
-          {past.length > 0 && (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
-              style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', border: '1px solid var(--border)' }}>
-              <span className="text-base font-black">{past.length}</span> ที่ผ่านมา
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Tab */}
-      <div className="flex p-1 rounded-2xl mb-5" style={{ background: 'var(--surface-2)' }}>
-        {(['upcoming', 'past'] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              'flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
-              tab === t ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500'
-            )}
-          >
-            {t === 'upcoming' ? '🗓 ที่กำลังจะมา' : '📚 ที่ผ่านมา'}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
-      {loading ? (
-        <div className="space-y-4">{[1,2].map(i => <div key={i} className="shimmer rounded-3xl h-52" />)}</div>
-      ) : display.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-4 spring-enter">
-          <div className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl border border-indigo-500/20" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(168,85,247,0.15))' }}>
-            {tab === 'upcoming' ? '🌏' : '📸'}
-          </div>
-          <div className="text-center">
-            <p className="text-white font-semibold text-lg">{tab === 'upcoming' ? 'ยังไม่มีทริปในตำนาน' : 'ยังไม่มีความทรงจำ'}</p>
-            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{tab === 'upcoming' ? 'สร้างทริปแรกแล้วชวนเพื่อนมาเที่ยวกัน!' : 'ทริปที่เสร็จแล้วจะมาแสดงที่นี่'}</p>
-          </div>
-          {tab === 'upcoming' && (
-            <button onClick={() => setShowCreate(true)} className="pressable px-6 py-3 rounded-2xl text-sm font-semibold text-white" style={{ background: 'linear-gradient(135deg,#6366f1,#a855f7)' }}>
-              ✈️ สร้างทริปแรก
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {display.map((trip, i) => (
-            <div key={trip.id} className="fade-up" style={{ animationDelay: `${i * 60}ms` }}>
-              <TripCard trip={trip} members={trip.trip_members} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Avatar */}
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+              border: '2px solid rgba(99,102,241,0.4)',
+              background: 'linear-gradient(135deg,#6366f1,#a855f7)',
+            }}>
+              {profile?.avatar_url
+                ? <Image src={profile.avatar_url} alt="" width={40} height={40} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: 'white' }}>{profile?.display_name?.[0]?.toUpperCase() ?? '?'}</div>
+              }
             </div>
+
+            {/* New trip button */}
+            <button
+              onClick={() => setShowCreate(true)}
+              className="pressable"
+              style={{
+                width: 44, height: 44, borderRadius: 14,
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+              }}
+            >
+              <Plus size={22} color="white" strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Stats chips ── */}
+        {!loading && trips.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 99, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.22)', fontSize: 13, fontWeight: 700, color: '#818cf8' }}>
+              <span style={{ fontSize: 18, fontWeight: 900 }}>{upcoming.length}</span> ทริปที่จะมา
+            </span>
+            {past.length > 0 && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 99, background: 'var(--s0)', border: '1px solid var(--b0)', fontSize: 13, fontWeight: 600, color: 'var(--t3)' }}>
+                <span style={{ fontSize: 18, fontWeight: 900 }}>{past.length}</span> ผ่านมาแล้ว
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── Tab selector ── */}
+        <div style={{ display: 'flex', padding: 4, borderRadius: 18, background: 'var(--s0)', marginBottom: 20, border: '1px solid var(--b0)' }}>
+          {(['upcoming', 'past'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 14, border: 'none', cursor: 'pointer', fontSize: 13,
+                fontWeight: 700, transition: 'all 0.2s ease',
+                background: tab === t ? 'var(--indigo)' : 'transparent',
+                color: tab === t ? 'white' : 'var(--t3)',
+                boxShadow: tab === t ? '0 2px 12px rgba(99,102,241,0.35)' : 'none',
+              }}
+            >
+              {t === 'upcoming' ? '🗓  ที่กำลังจะมา' : '📚  ที่ผ่านมา'}
+            </button>
           ))}
         </div>
-      )}
+
+        {/* ── Trip list ── */}
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[1,2].map(i => <div key={i} className="shimmer" style={{ borderRadius: 24, height: 220 }} />)}
+          </div>
+        ) : display.length === 0 ? (
+          <div className="spring-enter" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 16 }}>
+            <div style={{
+              width: 96, height: 96, borderRadius: 28, fontSize: 44,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))',
+              border: '1px solid rgba(99,102,241,0.15)',
+            }}>
+              {tab === 'upcoming' ? '🌏' : '📸'}
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>
+                {tab === 'upcoming' ? 'ยังไม่มีทริปในตำนาน' : 'ยังไม่มีความทรงจำ'}
+              </p>
+              <p style={{ fontSize: 14, color: 'var(--t3)', lineHeight: 1.5 }}>
+                {tab === 'upcoming' ? 'สร้างทริปแรกแล้วชวนเพื่อนมาเที่ยวกัน!' : 'ทริปที่เสร็จแล้วจะมาแสดงที่นี่'}
+              </p>
+            </div>
+            {tab === 'upcoming' && (
+              <button onClick={() => setShowCreate(true)} className="pressable btn-primary">
+                ✈️  สร้างทริปแรก
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {display.map((trip, i) => (
+              <div key={trip.id} className="fade-up" style={{ animationDelay: `${i * 50}ms` }}>
+                <TripCard trip={trip} members={trip.trip_members} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {showCreate && (
         <CreateTripModal

@@ -2,10 +2,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Compass, Package, User } from 'lucide-react'
-import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from '@/components/ui/Toast'
 
-const NAV_ITEMS = [
+const NAV = [
   { href: '/dashboard', icon: Home,    label: 'ทริป' },
   { href: '/explore',   icon: Compass, label: 'สำรวจ' },
   { href: '/packing',   icon: Package, label: 'เตรียมของ' },
@@ -14,49 +13,41 @@ const NAV_ITEMS = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isInsideTrip = pathname.includes('/trips/')
+  const insideTrip = pathname.includes('/trips/')
 
   return (
-    <div className="relative h-dvh" style={{ background: 'var(--surface)' }}>
+    <div style={{ position: 'relative', height: '100dvh', background: 'var(--bg)' }}>
       <ToastContainer />
-      <main className="scroll-container">
-        {children}
-      </main>
 
-      {/* Hide bottom nav when inside a trip (trip layout has its own nav) */}
-      {!isInsideTrip && (
+      <main className="scroll-container">{children}</main>
+
+      {!insideTrip && (
         <nav className="bottom-nav">
-          <div className="flex items-center justify-around px-6 py-1.5">
-            {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-              const isActive = pathname === href || pathname.startsWith(href + '/')
+          <div style={{ display: 'flex', alignItems: 'stretch', padding: '0 8px', paddingBottom: 0 }}>
+            {NAV.map(({ href, icon: Icon, label }) => {
+              const active = pathname === href
               return (
-                <Link
-                  key={href}
-                  href={href}
-                  className="flex flex-col items-center gap-1 min-w-[56px] py-1.5 relative"
-                >
-                  {/* Pill background for active */}
-                  <div className={cn(
-                    'w-12 h-8 rounded-2xl flex items-center justify-center transition-all duration-300',
-                    isActive
-                      ? 'bg-indigo-500/20'
-                      : 'bg-transparent'
-                  )}>
-                    <Icon
-                      size={21}
-                      strokeWidth={isActive ? 2.5 : 1.7}
-                      className={cn(
-                        'transition-all duration-200',
-                        isActive ? 'text-indigo-400' : 'text-slate-500'
-                      )}
-                    />
-                  </div>
-                  <span className={cn(
-                    'text-[10px] font-medium transition-colors duration-200 leading-none',
-                    isActive ? 'text-indigo-400' : 'text-slate-600'
-                  )}>
-                    {label}
-                  </span>
+                <Link key={href} href={href} style={{ flex: 1, textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0 10px', gap: 4, position: 'relative' }}>
+                  {/* Active pill */}
+                  {active && (
+                    <div style={{
+                      position: 'absolute', top: 6,
+                      width: 44, height: 32, borderRadius: 99,
+                      background: 'rgba(99,102,241,0.15)',
+                    }} />
+                  )}
+                  <Icon
+                    size={22}
+                    strokeWidth={active ? 2.5 : 1.7}
+                    color={active ? '#818cf8' : 'rgba(255,255,255,0.3)'}
+                    style={{ position: 'relative', zIndex: 1, transition: 'all 0.2s ease' }}
+                  />
+                  <span style={{
+                    fontSize: 10, fontWeight: active ? 700 : 500,
+                    color: active ? '#818cf8' : 'rgba(255,255,255,0.28)',
+                    letterSpacing: '-0.01em',
+                    transition: 'color 0.2s ease',
+                  }}>{label}</span>
                 </Link>
               )
             })}
