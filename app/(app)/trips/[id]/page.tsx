@@ -34,6 +34,7 @@ export default function TripOverviewPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [showMenu, setShowMenu] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => { loadTrip() }, [id])
 
@@ -50,9 +51,14 @@ export default function TripOverviewPage() {
 
   async function deleteTrip() {
     setShowMenu(false)
-    if (!confirm('ลบทริปนี้? ข้อมูลทั้งหมดจะหายถาวร')) return
+    setConfirmDelete(true)
+  }
+
+  async function confirmDeleteTrip() {
+    setConfirmDelete(false)
     const { error } = await supabase.from('trips').delete().eq('id', id)
     if (error) { toast('ลบไม่สำเร็จ: ' + error.message, 'error'); return }
+    toast('ลบทริปแล้ว')
     router.push('/dashboard')
   }
 
@@ -184,17 +190,54 @@ export default function TripOverviewPage() {
           isHost={isHost}
         />
 
-        {/* Destination Photo Widget */}
-        <DestinationWidget destination={trip.destination} tripName={trip.name} />
+        {/* ── Destination + Weather section ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Section label */}
+          <p className="label px-1">ปลายทาง & สภาพอากาศ</p>
 
-        {/* Weather */}
-        {trip.destination_lat && trip.destination_lng && (
-          <WeatherWidget lat={trip.destination_lat} lng={trip.destination_lng} destination={trip.destination} />
-        )}
+          {/* Destination Photo */}
+          <DestinationWidget destination={trip.destination} tripName={trip.name} />
+
+          {/* Weather */}
+          {trip.destination_lat && trip.destination_lng && (
+            <WeatherWidget lat={trip.destination_lat} lng={trip.destination_lng} destination={trip.destination} />
+          )}
+        </div>
       </div>
 
       {/* Backdrop for menu */}
       {showMenu && <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />}
+
+      {/* ── Confirm Delete Dialog ── */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
+          <div className="spring-enter w-full max-w-sm rounded-3xl p-6 space-y-4" style={{ background: 'var(--s1)', border: '1px solid var(--b1)' }}>
+            <div className="text-center space-y-2">
+              <div className="text-4xl">🗑️</div>
+              <h3 className="text-lg font-bold text-white">ลบทริปนี้?</h3>
+              <p className="text-sm" style={{ color: 'var(--t2)' }}>
+                ข้อมูลทั้งหมดในทริป "{trip?.name}" จะถูกลบถาวร และไม่สามารถกู้คืนได้
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="flex-1 py-3 rounded-2xl text-sm font-semibold"
+                style={{ background: 'var(--s2)', color: 'var(--t2)' }}
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={confirmDeleteTrip}
+                className="flex-1 py-3 rounded-2xl text-sm font-bold text-white pressable"
+                style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 4px 16px rgba(239,68,68,0.3)' }}
+              >
+                ลบทริป
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

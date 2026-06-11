@@ -13,34 +13,60 @@ export async function fetchDestinationInfo(destination: string): Promise<Destina
   const city = destination.split(',')[0].trim()
 
   // Try a few name variations
+  // Thai → English city name map
+  const THAI_MAP: Record<string, string> = {
+    // Japan
+    'โตเกียว': 'Tokyo', 'โอซาก้า': 'Osaka', 'โอซากา': 'Osaka',
+    'เกียวโต': 'Kyoto', 'ฮอกไกโด': 'Hokkaido', 'ซัปโปโร': 'Sapporo',
+    'นาโกย่า': 'Nagoya', 'ฟุกุโอกะ': 'Fukuoka', 'นารา': 'Nara',
+    'โยโกฮาม่า': 'Yokohama', 'ฮิโรชิม่า': 'Hiroshima', 'โอกินาว่า': 'Okinawa',
+    // Korea
+    'โซล': 'Seoul', 'ปูซาน': 'Busan', 'บูซาน': 'Busan',
+    'อินชอน': 'Incheon', 'แทกู': 'Daegu', 'แทจอน': 'Daejeon',
+    'เชจู': 'Jeju', 'กยองจู': 'Gyeongju', 'จอนจู': 'Jeonju',
+    // China
+    'ปักกิ่ง': 'Beijing', 'เซี่ยงไฮ้': 'Shanghai', 'ฮ่องกง': 'Hong_Kong',
+    'กวางโจว': 'Guangzhou', 'เฉิงตู': 'Chengdu', 'ซีอาน': 'Xi\'an',
+    'หางโจว': 'Hangzhou', 'ซูโจว': 'Suzhou', 'กุ้ยหลิน': 'Guilin',
+    'มาเก๊า': 'Macau',
+    // Southeast Asia
+    'สิงคโปร์': 'Singapore', 'กัวลาลัมเปอร์': 'Kuala_Lumpur',
+    'จาการ์ตา': 'Jakarta', 'บาหลี': 'Bali', 'มะนิลา': 'Manila',
+    'ฮานอย': 'Hanoi', 'โฮจิมินห์': 'Ho_Chi_Minh_City',
+    'เสียมเรียบ': 'Siem_Reap', 'พนมเปญ': 'Phnom_Penh',
+    'ย่างกุ้ง': 'Yangon', 'บาหยกอก': 'Bangkok',
+    'เวียงจันทน์': 'Vientiane', 'หลวงพระบาง': 'Luang_Prabang',
+    // Thailand
+    'กรุงเทพ': 'Bangkok', 'กรุงเทพฯ': 'Bangkok', 'กทม': 'Bangkok',
+    'เชียงใหม่': 'Chiang_Mai', 'ภูเก็ต': 'Phuket',
+    'พัทยา': 'Pattaya', 'หัวหิน': 'Hua_Hin', 'เกาะสมุย': 'Ko_Samui',
+    'กระบี่': 'Krabi', 'เกาะพีพี': 'Ko_Phi_Phi', 'เกาะช้าง': 'Ko_Chang',
+    'เชียงราย': 'Chiang_Rai', 'อยุธยา': 'Ayutthaya', 'สุโขทัย': 'Sukhothai',
+    // Europe
+    'ปารีส': 'Paris', 'ลอนดอน': 'London', 'โรม': 'Rome',
+    'บาร์เซโลนา': 'Barcelona', 'มาดริด': 'Madrid', 'อัมสเตอร์ดัม': 'Amsterdam',
+    'เบอร์ลิน': 'Berlin', 'ปราก': 'Prague', 'เวียนนา': 'Vienna',
+    'บูดาเปสต์': 'Budapest', 'วอร์ซอ': 'Warsaw', 'บรัสเซลส์': 'Brussels',
+    'เวนิส': 'Venice', 'ฟลอเรนซ์': 'Florence', 'มิลาน': 'Milan',
+    'ซูริค': 'Zurich', 'เจนีวา': 'Geneva', 'ลิสบอน': 'Lisbon',
+    'อิสตันบูล': 'Istanbul', 'อาเธนส์': 'Athens',
+    // Americas
+    'นิวยอร์ก': 'New_York_City', 'ลอสแองเจลิส': 'Los_Angeles',
+    'ซานฟรานซิสโก': 'San_Francisco', 'ชิคาโก': 'Chicago',
+    'ลาสเวกัส': 'Las_Vegas', 'ไมอามี': 'Miami', 'บอสตัน': 'Boston',
+    'โตรอนโต': 'Toronto', 'แวนคูเวอร์': 'Vancouver',
+    'เม็กซิโกซิตี้': 'Mexico_City', 'บัวโนสไอเรส': 'Buenos_Aires',
+    // Middle East & Others
+    'ดูไบ': 'Dubai', 'อาบูดาบี': 'Abu_Dhabi', 'โดฮา': 'Doha',
+    'ซิดนีย์': 'Sydney', 'เมลเบิร์น': 'Melbourne', 'โอ๊คแลนด์': 'Auckland',
+    'มุมไบ': 'Mumbai', 'นิวเดลี': 'New_Delhi',
+  }
+
+  const mapped = THAI_MAP[city]
   const candidates = [
+    mapped,
     city,
     city.replace(/\s+/g, '_'),
-    // common Thai->English mappings for popular destinations
-    city === 'โตเกียว' ? 'Tokyo' : null,
-    city === 'โอซาก้า' || city === 'โอซากา' ? 'Osaka' : null,
-    city === 'ปารีส' ? 'Paris' : null,
-    city === 'นิวยอร์ก' ? 'New_York_City' : null,
-    city === 'ลอนดอน' ? 'London' : null,
-    city === 'สิงคโปร์' ? 'Singapore' : null,
-    city === 'กรุงเทพ' || city === 'กรุงเทพฯ' ? 'Bangkok' : null,
-    city === 'เชียงใหม่' ? 'Chiang_Mai' : null,
-    city === 'ภูเก็ต' ? 'Phuket' : null,
-    city === 'บาหลี' ? 'Bali' : null,
-    city === 'โซล' ? 'Seoul' : null,
-    city === 'ปักกิ่ง' ? 'Beijing' : null,
-    city === 'เซี่ยงไฮ้' ? 'Shanghai' : null,
-    city === 'ฮ่องกง' ? 'Hong_Kong' : null,
-    city === 'ดูไบ' ? 'Dubai' : null,
-    city === 'บาร์เซโลนา' ? 'Barcelona' : null,
-    city === 'โรม' ? 'Rome' : null,
-    city === 'เวนิส' ? 'Venice' : null,
-    city === 'อิสตันบูล' ? 'Istanbul' : null,
-    city === 'อัมสเตอร์ดัม' ? 'Amsterdam' : null,
-    city === 'ซิดนีย์' ? 'Sydney' : null,
-    city === 'มะนิลา' ? 'Manila' : null,
-    city === 'กัวลาลัมเปอร์' ? 'Kuala_Lumpur' : null,
-    city === 'จาการ์ตา' ? 'Jakarta' : null,
   ].filter(Boolean) as string[]
 
   for (const name of candidates) {
