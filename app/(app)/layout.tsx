@@ -5,7 +5,7 @@ import { Home, MapPin, Receipt, CheckSquare, User } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 const NAV_ITEMS = [
-  { href: '/',         icon: Home,        label: 'หน้าแรก' },
+  { href: '/dashboard', icon: Home,        label: 'หน้าแรก' },
   { href: '/explore',  icon: MapPin,       label: 'สำรวจ' },
   { href: '/expenses', icon: Receipt,      label: 'บัญชี' },
   { href: '/packing',  icon: CheckSquare,  label: 'เตรียมของ' },
@@ -25,7 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav className="bottom-nav">
         <div className="flex items-center justify-around px-2 py-2">
           {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-            const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
+            const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
             return (
               <Link
                 key={href}
