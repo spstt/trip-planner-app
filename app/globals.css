@@ -1,16 +1,25 @@
 @import "tailwindcss";
 
-/* iOS safe area */
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --nav-height: 80px;
+  --nav-height: 72px;
+  --radius: 20px;
+
+  /* Brand colors */
+  --indigo: #6366f1;
+  --purple: #a855f7;
+  --surface: #0d1117;
+  --surface-2: #161b27;
+  --surface-3: #1e2535;
+  --border: rgba(255,255,255,0.07);
 }
 
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 html, body { height: 100%; overscroll-behavior: none; }
-body { position: fixed; width: 100%; overflow: hidden; }
+body { position: fixed; width: 100%; overflow: hidden; background: var(--surface); color: white; font-family: -apple-system, 'SF Pro Display', 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
 
+/* ── Scroll ── */
 .scroll-container {
   height: 100dvh;
   overflow-y: auto;
@@ -19,56 +28,80 @@ body { position: fixed; width: 100%; overflow: hidden; }
   padding-top: var(--safe-top);
 }
 
+/* ── Glass card ── */
 .glass {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border);
+}
+.glass-strong {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.12);
 }
 
+/* ── Bottom Nav ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
   padding-bottom: var(--safe-bottom);
-  background: rgba(15,23,42,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255,255,255,0.08);
+  background: rgba(13,17,23,0.88);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border-top: 1px solid var(--border);
   z-index: 50;
 }
 
-.bottom-sheet { border-radius: 20px 20px 0 0; background: rgb(17 24 39); border-top: 1px solid rgba(255,255,255,0.1); }
-.sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.2); margin: 8px auto; }
-.gradient-text { background: linear-gradient(135deg,#818cf8 0%,#c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.map-container { height: calc(100dvh - var(--nav-height) - var(--safe-bottom) - var(--safe-top) - 100px); }
-.shimmer { background: linear-gradient(90deg,rgba(255,255,255,0.05) 25%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+/* ── Sheet ── */
+.bottom-sheet {
+  border-radius: 28px 28px 0 0;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+}
+.sheet-handle {
+  width: 40px; height: 4px; border-radius: 99px;
+  background: rgba(255,255,255,0.15);
+  margin: 10px auto 4px;
+}
+
+/* ── Text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-muted { color: rgba(255,255,255,0.4); }
+
+/* ── Animations ── */
+.spring-enter { animation: springIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+.fade-up      { animation: fadeUp 0.3s ease both; }
+
+@keyframes springIn { from{opacity:0;transform:translateY(24px) scale(0.94)} to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes fadeUp   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── Shimmer skeleton ── */
+.shimmer {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 300% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
 @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-.spring-enter { animation: springIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
-@keyframes springIn { from{opacity:0;transform:translateY(20px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-.timeline-line { position:absolute; left:19px; top:40px; bottom:0; width:2px; background:linear-gradient(to bottom,#6366f1,transparent); }
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ── Utils ── */
+.hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+.hide-scrollbar::-webkit-scrollbar { display:none; }
+.timeline-line { position:absolute; left:19px; top:44px; bottom:0; width:2px; background:linear-gradient(to bottom, #6366f1 0%, transparent 100%); }
+
+/* ── Pressed state ── */
+.pressable { transition: transform 0.12s ease, opacity 0.12s ease; cursor: pointer; }
+.pressable:active { transform: scale(0.95); opacity: 0.85; }
+
+/* ── Card hover glow ── */
+.card-glow {
+  transition: box-shadow 0.2s ease;
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.card-glow:active {
+  box-shadow: 0 0 0 1px rgba(99,102,241,0.4), 0 8px 32px rgba(99,102,241,0.15);
 }

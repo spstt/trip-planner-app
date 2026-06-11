@@ -38,30 +38,46 @@ export default function TripLayout({ children }: { children: React.ReactNode }) 
   const activeTab = TABS.some(t => t.key === lastSegment) ? lastSegment : ''
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-950">
+    <div className="flex flex-col h-dvh" style={{ background: 'var(--surface)' }}>
+
       {/* Top header */}
       <div
-        className="shrink-0 flex items-center gap-3 px-4 pt-safe bg-slate-950/90 backdrop-blur-md border-b border-white/5"
-        style={{ paddingTop: 'calc(var(--safe-top) + 12px)', paddingBottom: '10px' }}
+        className="shrink-0 flex items-center gap-3 px-4"
+        style={{
+          paddingTop: 'calc(var(--safe-top) + 12px)',
+          paddingBottom: '10px',
+          background: 'rgba(13,17,23,0.85)',
+          backdropFilter: 'blur(40px)',
+          WebkitBackdropFilter: 'blur(40px)',
+          borderBottom: '1px solid var(--border)',
+        }}
       >
         <button
           onClick={() => router.push('/dashboard')}
-          className="w-9 h-9 rounded-xl glass flex items-center justify-center active:scale-90 transition-transform shrink-0"
+          className="pressable w-9 h-9 rounded-xl glass flex items-center justify-center shrink-0"
         >
-          <ArrowLeft size={18} className="text-white" />
+          <ArrowLeft size={17} className="text-white" />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-base font-bold text-white truncate leading-tight">
+          <h1 className="text-[15px] font-bold text-white truncate leading-tight">
             {trip?.name ?? '...'}
           </h1>
           {trip?.destination && (
-            <p className="text-xs text-slate-500 truncate">{trip.destination}</p>
+            <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>{trip.destination}</p>
           )}
         </div>
       </div>
 
       {/* Tab bar */}
-      <div className="shrink-0 flex bg-slate-950 border-b border-white/5 px-2">
+      <div
+        className="shrink-0 flex px-2"
+        style={{
+          background: 'rgba(13,17,23,0.7)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
         {TABS.map(({ key, icon: Icon, label }) => {
           const href = key ? `/trips/${id}/${key}` : `/trips/${id}`
           const isActive = activeTab === key
@@ -70,14 +86,17 @@ export default function TripLayout({ children }: { children: React.ReactNode }) 
               key={key}
               href={href}
               className={cn(
-                'flex-1 flex flex-col items-center gap-0.5 py-2.5 px-1 relative transition-all',
-                isActive ? 'text-indigo-400' : 'text-slate-600 active:text-slate-400'
+                'flex-1 flex flex-col items-center gap-1 py-2.5 px-1 relative transition-all duration-200',
+                isActive ? 'text-indigo-400' : 'text-slate-600'
               )}
             >
-              <Icon size={18} strokeWidth={isActive ? 2.5 : 1.8} />
-              <span className="text-[10px] font-medium">{label}</span>
+              <Icon size={17} strokeWidth={isActive ? 2.5 : 1.7} />
+              <span className="text-[10px] font-semibold leading-none">{label}</span>
               {isActive && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-500" />
+                <span
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2.5px] rounded-full"
+                  style={{ width: '28px', background: 'linear-gradient(90deg,#6366f1,#a855f7)' }}
+                />
               )}
             </Link>
           )

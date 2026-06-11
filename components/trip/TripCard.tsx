@@ -1,23 +1,23 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { differenceInDays, parseISO, format, isBefore, startOfToday } from 'date-fns'
+import { differenceInDays, parseISO, format, isBefore, startOfToday, differenceInDays as diffDays } from 'date-fns'
 import { th } from 'date-fns/locale'
-import { Globe, MapPin, ChevronRight } from 'lucide-react'
+import { Globe, MapPin } from 'lucide-react'
 import type { Trip, TripMember, Profile } from '@/types'
-import { cn } from '@/lib/utils/cn'
 
 interface Props {
   trip: Trip
   members: (TripMember & { profile: Profile })[]
 }
 
-const GRADIENT_COVERS = [
-  'from-indigo-600 to-purple-600',
-  'from-rose-500 to-orange-500',
-  'from-cyan-500 to-blue-600',
-  'from-emerald-500 to-teal-600',
-  'from-amber-500 to-orange-600',
+// Rich gradient palettes per trip
+const GRADIENTS = [
+  ['#6366f1','#a855f7'],
+  ['#ec4899','#f97316'],
+  ['#06b6d4','#3b82f6'],
+  ['#10b981','#06b6d4'],
+  ['#f59e0b','#ef4444'],
 ]
 
 export default function TripCard({ trip, members }: Props) {
@@ -26,84 +26,82 @@ export default function TripCard({ trip, members }: Props) {
   const endDate = parseISO(trip.end_date)
   const isPast = isBefore(endDate, today)
   const daysUntil = differenceInDays(startDate, today)
-  const colorIdx = trip.id.charCodeAt(0) % GRADIENT_COVERS.length
+  const tripLen = diffDays(endDate, startDate) + 1
+  const [c1, c2] = GRADIENTS[trip.id.charCodeAt(0) % GRADIENTS.length]
 
   return (
-    <Link href={`/trips/${trip.id}`} className="block active:scale-[0.98] transition-transform">
-      <div className="rounded-3xl overflow-hidden glass border border-white/10 shadow-xl">
-        {/* Cover */}
-        <div className={cn('relative h-36 bg-gradient-to-br', GRADIENT_COVERS[colorIdx])}>
-          {trip.cover_image_url && (
-            <Image
-              src={trip.cover_image_url}
-              alt={trip.name}
-              fill
-              className="object-cover"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+    <Link href={`/trips/${trip.id}`} className="block pressable card-glow">
+      <div className="rounded-3xl overflow-hidden border" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
 
-          {/* Countdown badge */}
-          <div className="absolute top-3 right-3">
+        {/* Cover hero */}
+        <div className="relative h-44 overflow-hidden" style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}>
+          {trip.cover_image_url && (
+            <Image src={trip.cover_image_url} alt={trip.name} fill className="object-cover mix-blend-overlay opacity-60" />
+          )}
+          {/* Noise texture overlay */}
+          <div className="absolute inset-0 opacity-20" style={{
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'1\'/%3E%3C/svg%3E")',
+          }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+          {/* Top badges */}
+          <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+            <span className="glass-strong px-2.5 py-1 rounded-full text-[11px] flex items-center gap-1 text-white/80 font-medium">
+              {trip.is_international ? <Globe size={11} /> : <MapPin size={11} />}
+              {trip.is_international ? 'ต่างประเทศ' : 'ในประเทศ'}
+            </span>
+
             {isPast ? (
-              <span className="glass px-3 py-1 rounded-full text-xs text-slate-300">ผ่านมาแล้ว</span>
+              <span className="glass-strong px-2.5 py-1 rounded-full text-[11px] text-white/60">เสร็จแล้ว</span>
             ) : daysUntil === 0 ? (
-              <span className="bg-green-500 px-3 py-1 rounded-full text-xs font-bold text-white animate-pulse">วันนี้!</span>
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold text-white animate-pulse" style={{ background: 'rgba(34,197,94,0.85)' }}>วันนี้! 🎉</span>
             ) : daysUntil > 0 ? (
-              <span className="glass px-3 py-1 rounded-full text-xs font-semibold text-white">
+              <span className="glass-strong px-2.5 py-1 rounded-full text-[11px] font-semibold text-white">
                 อีก {daysUntil} วัน
               </span>
             ) : null}
           </div>
 
-          {/* Trip type badge */}
-          <div className="absolute top-3 left-3">
-            <span className="glass px-2 py-1 rounded-full text-xs flex items-center gap-1 text-white/80">
-              {trip.is_international ? <Globe size={12} /> : <MapPin size={12} />}
-              {trip.is_international ? 'ต่างประเทศ' : 'ในประเทศ'}
-            </span>
-          </div>
-
-          {/* Trip name on cover */}
-          <div className="absolute bottom-3 left-4 right-4">
-            <h3 className="text-white font-bold text-lg leading-tight truncate">{trip.name}</h3>
+          {/* Bottom trip name */}
+          <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+            <h3 className="text-white font-bold text-xl leading-tight tracking-tight drop-shadow">{trip.name}</h3>
           </div>
         </div>
 
-        {/* Info row */}
+        {/* Info footer */}
         <div className="px-4 py-3 flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-              <MapPin size={12} />
-              <span className="truncate max-w-[160px]">{trip.destination}</span>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <MapPin size={11} />
+              <span className="truncate max-w-[150px]">{trip.destination}</span>
             </div>
-            <p className="text-slate-500 text-xs">
-              {format(startDate, 'd MMM', { locale: th })} – {format(endDate, 'd MMM yyyy', { locale: th })}
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              {format(startDate, 'd MMM', { locale: th })} – {format(endDate, 'd MMM yy', { locale: th })}
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{ background: 'rgba(99,102,241,0.2)', color: '#818cf8' }}>
+                {tripLen} วัน
+              </span>
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Member avatars */}
-            <div className="flex -space-x-2">
-              {members.slice(0, 4).map(m => (
-                <div
-                  key={m.user_id}
-                  className="w-7 h-7 rounded-full border-2 border-slate-900 bg-indigo-600 flex items-center justify-center text-xs font-bold text-white overflow-hidden"
-                >
-                  {m.profile?.avatar_url ? (
-                    <Image src={m.profile.avatar_url} alt="" width={28} height={28} className="w-full h-full object-cover" />
-                  ) : (
-                    m.profile?.display_name?.[0]?.toUpperCase() ?? '?'
-                  )}
-                </div>
-              ))}
-              {members.length > 4 && (
-                <div className="w-7 h-7 rounded-full border-2 border-slate-900 bg-slate-700 flex items-center justify-center text-xs text-slate-300">
-                  +{members.length - 4}
-                </div>
-              )}
-            </div>
-            <ChevronRight size={16} className="text-slate-600" />
+          {/* Member stack */}
+          <div className="flex -space-x-2 shrink-0">
+            {members.slice(0, 5).map(m => (
+              <div key={m.user_id}
+                className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold text-white shrink-0"
+                style={{ border: '2px solid var(--surface-2)', background: `linear-gradient(135deg, ${c1}, ${c2})` }}
+              >
+                {m.profile?.avatar_url
+                  ? <Image src={m.profile.avatar_url} alt="" width={28} height={28} className="w-full h-full object-cover" />
+                  : m.profile?.display_name?.[0]?.toUpperCase() ?? '?'
+                }
+              </div>
+            ))}
+            {members.length > 5 && (
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-slate-400"
+                style={{ border: '2px solid var(--surface-2)', background: 'var(--surface-3)' }}>
+                +{members.length - 5}
+              </div>
+            )}
           </div>
         </div>
       </div>
