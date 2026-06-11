@@ -46,7 +46,12 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
       .select()
       .single()
 
-    if (error || !trip) { setLoading(false); return }
+    if (error || !trip) {
+      setLoading(false)
+      alert('เกิดข้อผิดพลาด: ' + (error?.message ?? 'ไม่ทราบสาเหตุ'))
+      console.error('Trip creation error:', error)
+      return
+    }
 
     // Add creator as host
     await supabase.from('trip_members').insert({
