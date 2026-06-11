@@ -12,6 +12,7 @@ import WeatherWidget from '@/components/trip/WeatherWidget'
 import CountdownTimer from '@/components/trip/CountdownTimer'
 import InviteButton from '@/components/trip/InviteButton'
 import TripReadiness from '@/components/trip/TripReadiness'
+import DestinationWidget from '@/components/trip/DestinationWidget'
 
 interface TripData extends Trip {
   trip_members: (TripMember & { profile: Profile })[]
@@ -182,6 +183,9 @@ export default function TripOverviewPage() {
           currentUserId={currentUserId}
           isHost={isHost}
         />
+
+        {/* Destination Photo Widget */}
+        <DestinationWidget destination={trip.destination} tripName={trip.name} />
 
         {/* Weather */}
         {trip.destination_lat && trip.destination_lng && (
