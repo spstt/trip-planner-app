@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { X, Search, MapPin, Loader2 } from 'lucide-react'
 import type { ItineraryDay, ItineraryItem } from '@/types'
 import { useTripStore } from '@/lib/stores/trip-store'
+import { toast } from '@/components/ui/Toast'
 
 interface Props {
   day: ItineraryDay
@@ -101,10 +102,15 @@ export default function AddItemModal({ day, tripId, currentUserId, onClose }: Pr
       .single()
 
     if (data) {
-      // Replace temp with real
-      const { updateItem, removeItem } = useTripStore.getState()
+      const { removeItem, addItem: storeAdd } = useTripStore.getState()
       removeItem(tempId)
-      addItem(data as ItineraryItem)
+      storeAdd(data as ItineraryItem)
+      toast('เพิ่มสถานที่แล้ว 📍')
+    } else {
+      // rollback optimistic
+      const { removeItem } = useTripStore.getState()
+      removeItem(tempId)
+      toast('เพิ่มไม่สำเร็จ กรุณาลองใหม่', 'error')
     }
     setLoading(false)
   }

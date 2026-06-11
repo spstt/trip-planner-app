@@ -8,6 +8,7 @@ import {
   Save, Loader2, ChevronRight, Shield
 } from 'lucide-react'
 import type { Profile } from '@/types'
+import { toast } from '@/components/ui/Toast'
 
 const CURRENCIES = ['THB', 'USD', 'JPY', 'KRW', 'EUR', 'SGD', 'MYR', 'HKD']
 
@@ -67,6 +68,9 @@ export default function ProfilePage() {
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
       setProfile(p => p ? { ...p, ...form } : p)
+      toast('บันทึกข้อมูลแล้ว ✅')
+    } else {
+      toast('บันทึกไม่สำเร็จ: ' + error.message, 'error')
     }
   }
 
@@ -88,7 +92,7 @@ export default function ProfilePage() {
       await supabase.auth.signOut()
       router.push('/login')
     } else {
-      alert('เกิดข้อผิดพลาด: ' + error.message)
+      toast('เกิดข้อผิดพลาด: ' + error.message, 'error')
     }
   }
 

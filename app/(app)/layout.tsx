@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, MapPin, Receipt, CheckSquare, User } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { ToastContainer } from '@/components/ui/Toast'
 
 const NAV_ITEMS = [
   { href: '/dashboard', icon: Home,        label: 'หน้าแรก' },
@@ -17,6 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative h-dvh bg-slate-950">
+      <ToastContainer />
       <main className="scroll-container">
         {children}
       </main>

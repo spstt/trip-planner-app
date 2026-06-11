@@ -8,6 +8,7 @@ import {
   ArrowLeft, MapPin, Users, Copy, Check, Navigation,
   Map, Receipt, CheckSquare, Plane, Globe, Lock, Trash2
 } from 'lucide-react'
+import { toast } from '@/components/ui/Toast'
 import { format, differenceInDays, parseISO } from 'date-fns'
 import { th } from 'date-fns/locale'
 import type { Trip, TripMember, Profile } from '@/types'
@@ -100,7 +101,7 @@ export default function TripOverviewPage() {
               if (!confirm('ลบทริปนี้? ข้อมูลทั้งหมดจะหายถาวร')) return
               const supabase = createClient()
               const { error } = await supabase.from('trips').delete().eq('id', id)
-              if (error) { alert('ลบไม่สำเร็จ: ' + error.message); return }
+              if (error) { toast('ลบไม่สำเร็จ: ' + error.message, 'error'); return }
               router.push('/dashboard')
             }}
             className="absolute top-safe right-4 mt-4 w-10 h-10 rounded-2xl glass flex items-center justify-center active:scale-90 border border-red-500/30"

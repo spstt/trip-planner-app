@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { X, Globe, MapPin, Loader2 } from 'lucide-react'
+import { toast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils/cn'
 import type { Trip } from '@/types'
 import { addDays, format } from 'date-fns'
@@ -65,7 +66,7 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
 
     if (error || !trip) {
       setLoading(false)
-      alert('เกิดข้อผิดพลาด: ' + (error?.message ?? 'ไม่ทราบสาเหตุ'))
+      toast('เกิดข้อผิดพลาด: ' + (error?.message ?? 'ไม่ทราบสาเหตุ'), 'error')
       console.error('Trip creation error:', error)
       return
     }

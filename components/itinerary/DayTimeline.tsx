@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Clock, MapPin, MessageCircle, Trash2, ExternalLink, GripVertical } from 'lucide-react'
+import { Plus, Clock, MapPin, MessageCircle, Trash2, ExternalLink } from 'lucide-react'
+import { toast } from '@/components/ui/Toast'
 import type { ItineraryDay, ItineraryItem, Trip } from '@/types'
 import { useTripStore } from '@/lib/stores/trip-store'
 import ItemComments from './ItemComments'
@@ -22,9 +23,13 @@ export default function DayTimeline({ day, tripId, currentUserId, trip }: Props)
   const [showAdd, setShowAdd] = useState(false)
 
   async function deleteItem(item: ItineraryItem) {
-    // Optimistic update
-    removeItem(item.id)
-    await supabase.from('itinerary_items').delete().eq('id', item.id)
+    removeItem(item.id) // optimistic
+    const { error } = await supabase.from('itinerary_items').delete().eq('id', item.id)
+    if (error) {
+      toast('ลบไม่สำเร็จ', 'error')
+    } else {
+      toast('ลบสถานที่แล้ว')
+    }
   }
 
   const items = day.items ?? []
