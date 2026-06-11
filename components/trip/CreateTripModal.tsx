@@ -83,7 +83,7 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
         <div className="sheet-handle shrink-0" />
 
         {/* Scrollable content */}
-        <div className="px-5 pt-2 space-y-5 overflow-y-auto flex-1 pb-4">
+        <div className="px-5 pt-2 space-y-4 overflow-y-auto flex-1 pb-2">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">สร้างทริปใหม่</h2>
             <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
@@ -144,7 +144,7 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* Fixed bottom button — always visible */}
-        <div className="px-5 pb-6 pt-3 shrink-0 border-t border-white/5">
+        <div className="px-5 pb-4 pt-2 shrink-0 border-t border-white/5">
           <button
             onClick={handleCreate}
             disabled={loading || !form.name.trim() || !form.destination.trim()}
