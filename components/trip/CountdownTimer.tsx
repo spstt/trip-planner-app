@@ -38,7 +38,7 @@ export default function CountdownTimer({ startDate, endDate }: Props) {
       {/* Date bar */}
       <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
         <Calendar size={14} className="text-indigo-400 shrink-0" />
-        <span className="text-sm font-medium text-white">
+        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--t1)' }}>
           {format(start, 'd MMM', { locale: th })} – {format(end, 'd MMM yyyy', { locale: th })}
         </span>
         <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-semibold"
@@ -55,7 +55,7 @@ export default function CountdownTimer({ startDate, endDate }: Props) {
         </div>
       ) : (
         <div className="px-3 py-3">
-          <p className="text-[11px] font-medium px-1 mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <p className="text-[11px] font-medium px-1 mb-2" style={{ color: 'var(--t3)' }}>
             นับถอยหลังสู่วันเดินทาง
           </p>
           <div className="flex gap-2">
@@ -67,10 +67,10 @@ export default function CountdownTimer({ startDate, endDate }: Props) {
             ].map(({ val, label }) => (
               <div key={label} className="flex-1 rounded-xl py-2.5 text-center"
                 style={{ background: 'var(--surface-3)' }}>
-                <div className="text-[22px] font-black text-white tabular-nums leading-none">
+                <div className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--t1)' }}>
                   {String(val).padStart(2, '0')}
                 </div>
-                <div className="text-[10px] mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</div>
+                <div className="text-[10px] mt-1 font-medium" style={{ color: 'var(--t3)' }}>{label}</div>
               </div>
             ))}
           </div>

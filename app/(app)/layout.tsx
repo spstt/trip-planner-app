@@ -33,18 +33,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <div style={{
                       position: 'absolute', top: 6,
                       width: 44, height: 32, borderRadius: 99,
-                      background: 'rgba(99,102,241,0.15)',
+                      background: 'var(--indigo-glow)',
                     }} />
                   )}
                   <Icon
                     size={22}
-                    strokeWidth={active ? 2.5 : 1.7}
-                    color={active ? '#818cf8' : 'rgba(255,255,255,0.3)'}
+                    strokeWidth={active ? 2.5 : 2.0}
+                    color={active ? 'var(--indigo)' : 'var(--t2)'}
                     style={{ position: 'relative', zIndex: 1, transition: 'all 0.2s ease' }}
                   />
                   <span style={{
                     fontSize: 10, fontWeight: active ? 700 : 500,
-                    color: active ? '#818cf8' : 'rgba(255,255,255,0.28)',
+                    color: active ? 'var(--indigo)' : 'var(--t2)',
                     letterSpacing: '-0.01em',
                     transition: 'color 0.2s ease',
                   }}>{label}</span>
