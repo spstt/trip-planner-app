@@ -28,6 +28,8 @@ export default function DashboardPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [showTheme, setShowTheme] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [greeting, setGreeting] = useState('')
+  useEffect(() => { setGreeting(getGreeting()) }, [])
   const supabase = createClient()
   const { theme, setTheme } = useTheme()
 
@@ -74,7 +76,7 @@ export default function DashboardPage() {
         {/* ── Header ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--t3)', marginBottom: 2 }}>{getGreeting()}</p>
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--t3)', marginBottom: 2 }}>{greeting}</p>
             <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--t1)', letterSpacing: '-0.03em', lineHeight: 1 }}>
               {profile?.display_name?.split(' ')[0] || 'ทริปของฉัน'}
             </h1>

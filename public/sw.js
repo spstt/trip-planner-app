@@ -15,9 +15,10 @@ const SHELL_ASSETS = [
 // Install: pre-cache app shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE).then(cache =>
-      cache.addAll(['/', '/login', '/offline'])
-    ).then(() => self.skipWaiting())
+    caches.open(SHELL_CACHE).then(async cache => {
+      // Cache individually so one failure doesn't break the rest
+      await Promise.allSettled(['/', '/login'].map(url => cache.add(url)))
+    }).then(() => self.skipWaiting())
   )
 })
 

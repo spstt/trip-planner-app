@@ -10,22 +10,25 @@ export default function InviteButton({ tripId }: Props) {
   const supabase = createClient()
 
   async function copyInviteLink() {
-    // Create or fetch existing invitation
-    let { data: existing } = await supabase
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Reuse existing valid invitation
+    const { data: existing } = await supabase
       .from('trip_invitations')
       .select('token')
       .eq('trip_id', tripId)
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     let token = existing?.token
 
     if (!token) {
       const { data: inv } = await supabase
         .from('trip_invitations')
-        .insert({ trip_id: tripId })
+        .insert({ trip_id: tripId, created_by: user.id })
         .select('token')
         .single()
       token = inv?.token
