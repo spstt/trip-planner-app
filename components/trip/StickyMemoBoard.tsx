@@ -63,7 +63,7 @@ export default function StickyMemoBoard({ tripId, currentUserId }: Props) {
   async function load() {
     const { data } = await supabase
       .from('trip_memos')
-      .select('*, author:profiles!user_id(display_name, avatar_url)')
+      .select('*, author:profiles!trip_memos_user_id_fkey(display_name, avatar_url)')
       .eq('trip_id', tripId)
       .order('created_at')
     setMemos((data ?? []) as Memo[])
