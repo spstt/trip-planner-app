@@ -8,6 +8,7 @@ import { calculateDebts, formatCurrency } from '@/lib/utils/debt'
 import ExpenseItem from '@/components/expenses/ExpenseItem'
 import AddExpenseModal from '@/components/expenses/AddExpenseModal'
 import SettleUpSheet from '@/components/expenses/SettleUpSheet'
+import ExpensePieChart from '@/components/expenses/ExpensePieChart'
 import { cn } from '@/lib/utils/cn'
 
 export default function ExpensesPage() {
@@ -181,6 +182,11 @@ export default function ExpensesPage() {
 
       {tab === 'list' ? (
         <div className="space-y-3 pb-4">
+          {/* Pie chart — show when >= 2 categories */}
+          {expenses.length > 0 && (
+            <ExpensePieChart expenses={expenses} />
+          )}
+
           {expenses.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-2">💰</div>

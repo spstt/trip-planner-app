@@ -1,11 +1,12 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Paperclip, Download, Eye, Plane, Hotel, Train, Car, Ticket, Package, ChevronDown, ChevronUp } from 'lucide-react'
+import { Paperclip, Eye, Plane, Hotel, Train, Car, Ticket, Package, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import type { Booking, BookingAttachment } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { th } from 'date-fns/locale'
 import { cacheAttachment, getCachedAttachment } from '@/lib/utils/offline'
+import AttachmentPreviewModal from './AttachmentPreviewModal'
 
 const ICONS = { flight: Plane, hotel: Hotel, train: Train, rental: Car, activity: Ticket, other: Package }
 const COLORS = { flight: 'text-blue-400', hotel: 'text-amber-400', train: 'text-green-400', rental: 'text-orange-400', activity: 'text-purple-400', other: 'text-slate-400' }
@@ -21,6 +22,8 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
   const supabase = createClient()
   const [expanded, setExpanded] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [preview, setPreview] = useState<{ att: BookingAttachment; url: string } | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState<string | null>(null)
   const Icon = ICONS[booking.category] ?? Package
 
   async function uploadFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -54,11 +57,14 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
   }
 
   async function openAttachment(attachment: BookingAttachment) {
+    setLoadingPreview(attachment.id)
+
     // Try cache first (offline support)
     const cached = await getCachedAttachment(attachment.storage_path)
     if (cached) {
       const url = URL.createObjectURL(cached)
-      window.open(url, '_blank')
+      setLoadingPreview(null)
+      setPreview({ att: attachment, url })
       return
     }
 
@@ -67,19 +73,20 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
       .from('trip-files')
       .createSignedUrl(attachment.storage_path, 3600)
 
+    setLoadingPreview(null)
     if (!data?.signedUrl) return
 
-    // Download and cache for future offline use
-    try {
-      const res = await fetch(data.signedUrl)
-      const blob = await res.blob()
-      await cacheAttachment(attachment.storage_path, blob, attachment.file_name)
-    } catch {}
+    // Background cache
+    fetch(data.signedUrl)
+      .then(r => r.blob())
+      .then(blob => cacheAttachment(attachment.storage_path, blob, attachment.file_name))
+      .catch(() => {})
 
-    window.open(data.signedUrl, '_blank')
+    setPreview({ att: attachment, url: data.signedUrl })
   }
 
   return (
+    <>
     <div className="glass rounded-2xl border border-white/5 overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
@@ -122,19 +129,37 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
 
           {/* Attachments */}
           <div className="space-y-2">
-            {booking.attachments.map(att => (
-              <button
-                key={att.id}
-                onClick={() => openAttachment(att)}
-                className="w-full flex items-center gap-3 bg-slate-900 rounded-xl px-3 py-2.5 active:scale-95 transition-transform"
-              >
-                <span className="text-xl">
-                  {att.file_type.includes('pdf') ? '📄' : '🖼️'}
-                </span>
-                <span className="flex-1 text-sm text-slate-300 text-left truncate">{att.file_name}</span>
-                <Eye size={14} className="text-indigo-400 shrink-0" />
-              </button>
-            ))}
+            {booking.attachments.map(att => {
+              const isLoading = loadingPreview === att.id
+              const isImg = att.file_type.startsWith('image/')
+              const isPdf = att.file_type === 'application/pdf'
+              return (
+                <button
+                  key={att.id}
+                  onClick={() => openAttachment(att)}
+                  disabled={isLoading}
+                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 active:scale-95 transition-all"
+                  style={{ background: 'var(--s2)', border: '1px solid var(--b0)' }}
+                >
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: isImg ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.12)' }}>
+                    <span className="text-base">{isPdf ? '📄' : '🖼️'}</span>
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--t1)' }}>{att.file_name}</p>
+                    {att.file_size_bytes && (
+                      <p className="text-[10px]" style={{ color: 'var(--t3)' }}>
+                        {(att.file_size_bytes / 1024).toFixed(0)} KB
+                      </p>
+                    )}
+                  </div>
+                  {isLoading
+                    ? <Loader2 size={14} className="animate-spin shrink-0" style={{ color: 'var(--t3)' }} />
+                    : <Eye size={14} className="text-indigo-400 shrink-0" />
+                  }
+                </button>
+              )
+            })}
           </div>
 
           {/* Upload button */}
@@ -158,5 +183,15 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
         </div>
       )}
     </div>
+
+    {/* Attachment preview modal */}
+    {preview && (
+      <AttachmentPreviewModal
+        attachment={preview.att}
+        signedUrl={preview.url}
+        onClose={() => setPreview(null)}
+      />
+    )}
+    </>
   )
 }
