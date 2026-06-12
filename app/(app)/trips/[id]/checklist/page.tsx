@@ -2,10 +2,35 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Users, Lock } from 'lucide-react'
+import { Plus, Users, Lock, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ChecklistItem, Profile } from '@/types'
 import { cn } from '@/lib/utils/cn'
 import Image from 'next/image'
+import confetti from 'canvas-confetti'
+
+// Packing template categories
+const TEMPLATES: { label: string; emoji: string; items: string[] }[] = [
+  {
+    label: 'เอกสาร', emoji: '📄',
+    items: ['หนังสือเดินทาง', 'บัตรประชาชน', 'ตั๋วเครื่องบิน', 'ใบจองโรงแรม', 'ประกันการเดินทาง', 'ใบขับขี่สากล'],
+  },
+  {
+    label: 'อุปกรณ์ไฟฟ้า', emoji: '🔌',
+    items: ['โทรศัพท์ + สายชาร์จ', 'Power bank', 'หูฟัง', 'กล้องถ่ายรูป + แบตสำรอง', 'Adapter ปลั๊กไฟ', 'Laptop'],
+  },
+  {
+    label: 'เสื้อผ้า', emoji: '👕',
+    items: ['เสื้อยืด', 'กางเกงขายาว', 'กางเกงขาสั้น', 'ชุดชั้นใน', 'ถุงเท้า', 'รองเท้าแตะ', 'รองเท้าเดิน'],
+  },
+  {
+    label: 'ของใช้ส่วนตัว', emoji: '🧴',
+    items: ['ยาสีฟัน + แปรงสีฟัน', 'แชมพู + ครีมนวด', 'สบู่ / เจลอาบน้ำ', 'ยากันยุง', 'ครีมกันแดด SPF50+', 'ยาประจำตัว'],
+  },
+  {
+    label: 'ท่องเที่ยว', emoji: '🗺️',
+    items: ['ซิมการ์ดต่างประเทศ', 'เงินสดสกุลท้องถิ่น', 'กระเป๋าคาดเอว', 'ล็อคกระเป๋า', 'ขวดน้ำ reusable', 'ร่ม / เสื้อกันฝน'],
+  },
+]
 
 export default function ChecklistPage() {
   const { id: tripId } = useParams<{ id: string }>()
@@ -15,6 +40,8 @@ export default function ChecklistPage() {
   const [newItem, setNewItem] = useState('')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [insertingTemplate, setInsertingTemplate] = useState<string | null>(null)
 
   useEffect(() => {
     init()
@@ -76,17 +103,37 @@ export default function ChecklistPage() {
 
   async function toggleItem(item: ChecklistItem) {
     const newChecked = !item.is_checked
-    // Optimistic
     setItems(prev => prev.map(i =>
       i.id === item.id
         ? { ...i, is_checked: newChecked, checked_by: newChecked ? currentUserId! : null }
         : i
     ))
+    if (newChecked) {
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.7 }, colors: ['#6366f1','#a855f7','#ec4899','#10b981'] })
+    }
     await supabase.from('checklist_items').update({
       is_checked: newChecked,
       checked_by: newChecked ? currentUserId : null,
       checked_at: newChecked ? new Date().toISOString() : null,
     }).eq('id', item.id)
+  }
+
+  async function insertTemplate(tmpl: typeof TEMPLATES[0]) {
+    if (!currentUserId) return
+    setInsertingTemplate(tmpl.label)
+    const base = Math.floor(Date.now() / 1000)
+    const rows = tmpl.items.map((title, i) => ({
+      trip_id: tripId,
+      title,
+      is_shared: tab === 'shared',
+      owner_id: tab === 'personal' ? currentUserId : null,
+      created_by: currentUserId,
+      sort_order: base + i,
+    }))
+    await supabase.from('checklist_items').insert(rows)
+    setInsertingTemplate(null)
+    setShowTemplates(false)
+    loadItems()
   }
 
   async function deleteItem(id: string) {
@@ -153,6 +200,40 @@ export default function ChecklistPage() {
         >
           <Plus size={18} className="text-white" />
         </button>
+      </div>
+
+      {/* Packing Templates */}
+      <div>
+        <button
+          onClick={() => setShowTemplates(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-medium transition-all"
+          style={{ background: 'var(--s0)', border: '1px solid var(--b0)', color: 'var(--t2)' }}
+        >
+          <span className="flex items-center gap-2">🧳 เทมเพลตจัดกระเป๋า</span>
+          {showTemplates ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </button>
+        {showTemplates && (
+          <div className="mt-2 grid grid-cols-1 gap-2">
+            {TEMPLATES.map(tmpl => (
+              <button
+                key={tmpl.label}
+                onClick={() => insertTemplate(tmpl)}
+                disabled={insertingTemplate === tmpl.label}
+                className="flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all active:scale-95 disabled:opacity-50 text-left"
+                style={{ background: 'var(--s1)', border: '1px solid var(--b0)', color: 'var(--t1)' }}
+              >
+                <span className="flex items-center gap-2">
+                  <span>{tmpl.emoji}</span>
+                  <span className="font-medium">{tmpl.label}</span>
+                  <span className="text-xs" style={{ color: 'var(--t3)' }}>{tmpl.items.length} รายการ</span>
+                </span>
+                <span className="text-xs font-semibold" style={{ color: '#818cf8' }}>
+                  {insertingTemplate === tmpl.label ? 'กำลังเพิ่ม...' : '+ เพิ่ม'}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Items */}

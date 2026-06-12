@@ -229,3 +229,42 @@ create policy "trip_members: host delete"
         and tm.role = 'host'
     )
   );
+
+-- ── 8. emergency_meetups ───────────────────────────────────────
+alter table emergency_meetups enable row level security;
+
+create policy "emergency_meetups: members select"
+  on emergency_meetups for select
+  using (is_trip_member(trip_id));
+
+create policy "emergency_meetups: host insert"
+  on emergency_meetups for insert
+  with check (is_trip_host(trip_id));
+
+create policy "emergency_meetups: host delete"
+  on emergency_meetups for delete
+  using (is_trip_host(trip_id));
+
+-- ── 9. item_comments ────────────────────────────────────────────
+alter table item_comments enable row level security;
+
+create policy "item_comments: members select"
+  on item_comments for select
+  using (is_trip_member(trip_id));
+
+create policy "item_comments: members insert"
+  on item_comments for insert
+  with check (
+    is_trip_member(trip_id)
+    and user_id = auth.uid()
+  );
+
+create policy "item_comments: owner delete"
+  on item_comments for delete
+  using (user_id = auth.uid());
+
+-- ── 10. avatars bucket policy (run in Storage → Policies) ───────
+-- INSERT: auth.uid() IS NOT NULL
+-- SELECT: true (public)
+-- UPDATE: (storage.foldername(name))[1] = auth.uid()::text
+-- DELETE: (storage.foldername(name))[1] = auth.uid()::text
