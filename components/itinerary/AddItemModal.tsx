@@ -86,7 +86,7 @@ export default function AddItemModal({ day, tripId, currentUserId, onClose }: Pr
       duration_min: form.duration_min ? parseInt(form.duration_min) : null,
       notes: form.notes || null,
       created_by: currentUserId,
-      sort_order: Date.now(),
+      sort_order: Math.floor(Date.now() / 1000),
       is_backup: false,
     }
 
