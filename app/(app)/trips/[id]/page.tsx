@@ -39,7 +39,21 @@ export default function TripOverviewPage() {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { loadTrip() }, [id])
+  useEffect(() => {
+    loadTrip()
+
+    // Real-time: re-fetch when someone joins or leaves this trip
+    const channel = supabase
+      .channel(`trip-members-${id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'trip_members', filter: `trip_id=eq.${id}` },
+        () => { loadTrip() },
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [id])
 
   async function loadTrip() {
     const { data: { user } } = await supabase.auth.getUser()

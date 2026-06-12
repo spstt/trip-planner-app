@@ -1,5 +1,29 @@
 import type { WeatherDay } from '@/types'
 
+// ─── Offline cache helpers ───────────────────────────────────────────────────
+interface WeatherCache { data: WeatherDay[]; cachedAt: number }
+
+function cacheKey(lat: number, lng: number) {
+  return `tripmate_wx_${lat.toFixed(4)}_${lng.toFixed(4)}`
+}
+
+function readCache(key: string): WeatherDay[] | null {
+  try {
+    if (typeof localStorage === 'undefined') return null
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+    return (JSON.parse(raw) as WeatherCache).data
+  } catch { return null }
+}
+
+function writeCache(key: string, data: WeatherDay[]) {
+  try {
+    if (typeof localStorage === 'undefined') return
+    const payload: WeatherCache = { data, cachedAt: Date.now() }
+    localStorage.setItem(key, JSON.stringify(payload))
+  } catch { /* quota exceeded — silently skip */ }
+}
+
 // WMO Weather interpretation codes → icon + label
 const WEATHER_CODES: Record<number, { icon: string; label: string }> = {
   0: { icon: '☀️', label: 'แดดจัด' },
@@ -23,6 +47,8 @@ export function getWeatherIcon(code: number) {
 }
 
 export async function fetchWeather(lat: number, lng: number): Promise<WeatherDay[]> {
+  const key = cacheKey(lat, lng)
+
   const url = new URL('https://api.open-meteo.com/v1/forecast')
   url.searchParams.set('latitude', lat.toString())
   url.searchParams.set('longitude', lng.toString())
@@ -30,17 +56,27 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherDay
   url.searchParams.set('timezone', 'auto')
   url.searchParams.set('forecast_days', '7')
 
-  const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
-  if (!res.ok) throw new Error('Weather fetch failed')
+  try {
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
+    if (!res.ok) throw new Error('Weather fetch failed')
 
-  const data = await res.json()
-  const { time, temperature_2m_max, temperature_2m_min, weathercode, precipitation_sum } = data.daily
+    const data = await res.json()
+    const { time, temperature_2m_max, temperature_2m_min, weathercode, precipitation_sum } = data.daily
 
-  return time.map((date: string, i: number) => ({
-    date,
-    tempMax: Math.round(temperature_2m_max[i]),
-    tempMin: Math.round(temperature_2m_min[i]),
-    weatherCode: weathercode[i],
-    precipitationSum: precipitation_sum[i],
-  }))
+    const days: WeatherDay[] = time.map((date: string, i: number) => ({
+      date,
+      tempMax: Math.round(temperature_2m_max[i]),
+      tempMin: Math.round(temperature_2m_min[i]),
+      weatherCode: weathercode[i],
+      precipitationSum: precipitation_sum[i],
+    }))
+
+    writeCache(key, days)
+    return days
+  } catch (err) {
+    // Network unavailable — serve whatever is cached (any age)
+    const cached = readCache(key)
+    if (cached) return cached
+    throw err
+  }
 }
