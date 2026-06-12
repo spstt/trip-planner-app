@@ -80,7 +80,7 @@ lib/
 │   ├── server.ts        — createServerClient (for Server Components / Route Handlers)
 │   └── middleware.ts    — updateSession() called by middleware.ts (root)
 ├── hooks/
-│   └── useTheme.ts      — theme switcher hook: 'dark-slate' | 'warm-pastel', localStorage
+│   └── useTheme.ts      — theme switcher hook: 'dark-slate' | 'warm-pastel' | 'jeju-sunlight' | 'matcha-latte', localStorage
 ├── stores/
 │   └── trip-store.ts    — Zustand store (optimistic updates — mostly bypassed, use callbacks)
 └── utils/
@@ -124,6 +124,7 @@ supabase/
 | `bookings` | id, trip_id, category, title, booking_ref, provider, checkin_at, checkout_at, location, created_by | |
 | `booking_attachments` | id, booking_id, trip_id, file_name, file_type, storage_path, file_size_bytes, uploaded_by | Files in Storage bucket `trip-files` |
 | `emergency_meetups` | id, trip_id, day_id, title, lat, lng, description, set_by | Host-only insert/delete; RLS in rls_policies.sql |
+| `trip_memos` | id, trip_id, user_id, body (≤120 chars), color, rotation, created_at | Sticky memo board; members select/insert, owner delete; **requires manual SQL run** (in rls_policies.sql) |
 
 ### Supabase — Storage Buckets
 | Bucket | Usage |
@@ -167,7 +168,14 @@ join_trip_by_token(p_token text) returns jsonb
 ### Design system
 - CSS variables: `--bg`, `--s0/s1/s2` (surfaces), `--b0/b1` (borders), `--t1/t2/t3` (text hierarchy)
 - Accents: `--indigo`, `--violet`, `--pink`, `--indigo-glow`
-- Themes: default = **Dark Slate**; `[data-theme="warm-pastel"]` overrides all variables
+- Themes (4 total, set via `data-theme` on `<html>`):
+  - **Dark Slate** — default (no data-theme attribute)
+  - **Warm Pastel** — `[data-theme="warm-pastel"]`
+  - **Jeju Sunlight** — `[data-theme="jeju-sunlight"]` (warm orange accent, cream bg)
+  - **Matcha Latte** — `[data-theme="matcha-latte"]` (green accent, soft green bg)
+- Theme switcher: `lib/hooks/useTheme.ts`, persists in localStorage, 2×2 grid UI on dashboard
+- **All pages use CSS variables only** — never hardcode dark Tailwind classes (`text-white`, `bg-slate-900`, etc.)
+  Use inline `style={{ color: 'var(--t1)' }}` etc. so all 4 themes work correctly
 - Utility classes: `.glass`, `.shimmer`, `.pressable`, `.btn-primary`, `.spring-enter`, `.fade-up`, `.input`, `.bottom-sheet`, `.scroll-container`
 - Body is `position: fixed` (PWA) — scrollable areas use `.scroll-container`
 - Bottom nav height: `var(--nav-height)`; safe area: `var(--safe-bottom)`
@@ -193,7 +201,7 @@ join_trip_by_token(p_token text) returns jsonb
 ---
 
 ### Features done
-- **Theme switcher**: Dark Slate / Warm Pastel — bottom sheet on dashboard, persists in localStorage
+- **Theme switcher**: 4 themes (Dark Slate / Warm Pastel / Jeju Sunlight / Matcha Latte) — 2×2 grid UI on dashboard, persists in localStorage
 - **Trip banner**: cover_image_url (host upload) → Wikipedia photo → gradient fallback
 - **SmartTravelTips**: Open-Meteo avg temp → 4 clothing tiers, umbrella if rainy ≥ 2 days
 - **Real-time**: supabase.channel on trip_members, itinerary_items, checklist_items, expenses
@@ -207,12 +215,15 @@ join_trip_by_token(p_token text) returns jsonb
 - **Cash expense**: is_cash toggle excludes from settle-up; green "เงินสด" badge
 - **Countdown timer**: airplane ✈️ bobbing on dashed progress track (CSS keyframes)
 - **Emergency meetups**: host pins lat/lng points on trip overview; open in Google Maps
-- **Checklist confetti**: canvas-confetti on item check
+- **Checklist confetti**: canvas-confetti on item check; paw-print checkbox SVG (pink fill when checked)
 - **Packing templates**: 5 categories (เอกสาร, อุปกรณ์ไฟฟ้า, เสื้อผ้า, ของใช้ส่วนตัว, ท่องเที่ยว) — bulk insert
 - **Item comments**: ItemComments.tsx connected; RLS policies in rls_policies.sql
 - **Custom map markers**: emoji diamond-pin per place type (cafe/food/hotel/airport/etc.)
 - **Expense pie chart**: recharts donut with interactive legend + bar breakdown per category
 - **Attachment preview modal**: full-screen in-app image (zoom/rotate) + PDF (iframe) viewer
+- **Vintage ticket cards**: BookingCard with serrated top/bottom edges, color-coded header per category, barcode-style REF
+- **Sticky Memo Board**: pastel post-it notes with random rotation, tape strip, realtime sync (needs `trip_memos` table — SQL in rls_policies.sql)
+- **TripCard sketch overlay**: SVG hand-drawn travel illustration (balloon, mountains, compass, route path) on card hero; torn-ticket scalloped divider between hero and footer; soft glassmorphism badges
 
 ### Known bugs fixed (reference)
 | Bug | Fix |
@@ -227,3 +238,5 @@ join_trip_by_token(p_token text) returns jsonb
 | Wikipedia 404 for Thai cities | Try `th.wikipedia.org` before `en.wikipedia.org` |
 | Expense settle-up empty | Payer amount `''` defaulted to 0; fixed by defaulting to amountTHB |
 | checklist FK hint error | FK name wrong in `.select()`; changed to `!checked_by` |
+| Light mode invisible text | Hardcoded dark Tailwind classes (`text-white`, `bg-slate-900`) don't respond to themes; always use CSS variables via inline `style={}` |
+| recharts TypeScript error | `activeIndex` + `activeShape` props don't exist on `Pie` in installed version — remove both |
