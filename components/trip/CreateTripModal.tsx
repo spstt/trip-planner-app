@@ -43,8 +43,17 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
     if (!form.name.trim() || !form.destination.trim()) return
     setLoading(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    // Refresh session to ensure JWT is up to date
+    await supabase.auth.refreshSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      toast('กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 'error')
+      console.error('Auth error:', authError)
+      setLoading(false)
+      return
+    }
+    const { data: sessionData } = await supabase.auth.getSession()
+    console.log('user.id:', user.id, '| token:', sessionData.session?.access_token?.slice(0, 20))
 
     // Geocode destination for weather + map
     const coords = await geocode(form.destination.trim())
