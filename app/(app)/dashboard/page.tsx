@@ -95,7 +95,7 @@ export default function DashboardPage() {
               }
             </div>
 
-            {/* Theme switcher button */}
+            {/* Theme switcher button — soft glow (ข้อ 4) */}
             <button
               onClick={() => setShowTheme(true)}
               className="pressable"
@@ -103,20 +103,25 @@ export default function DashboardPage() {
                 width: 44, height: 44, borderRadius: 14,
                 background: 'var(--s1)', border: '1px solid var(--b1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: theme === 'dark-slate'
+                  ? '0 0 0 1px rgba(255,255,255,0.04), 0 4px 16px rgba(99,102,241,0.18), 0 1px 0 rgba(255,255,255,0.06) inset'
+                  : '0 4px 16px rgba(0,0,0,0.10), 0 1px 0 rgba(255,255,255,0.55) inset',
+                transition: 'box-shadow 0.2s ease, transform 0.14s cubic-bezier(0.34,1.56,0.64,1)',
               }}
             >
               <Palette size={20} color="var(--t2)" />
             </button>
 
-            {/* New trip button */}
+            {/* New trip button — stronger glow (ข้อ 4) */}
             <button
               onClick={() => setShowCreate(true)}
               className="pressable"
               style={{
                 width: 44, height: 44, borderRadius: 14,
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                background: 'linear-gradient(135deg, var(--indigo), var(--violet))',
                 border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+                boxShadow: '0 4px 20px var(--indigo-glow), 0 0 0 1px rgba(255,255,255,0.10) inset, 0 8px 32px rgba(99,102,241,0.28)',
+                transition: 'box-shadow 0.2s ease, transform 0.14s cubic-bezier(0.34,1.56,0.64,1)',
               }}
             >
               <Plus size={22} color="white" strokeWidth={2.5} />
@@ -193,6 +198,47 @@ export default function DashboardPage() {
                 <TripCard trip={trip} members={trip.trip_members} />
               </div>
             ))}
+
+            {/* Empty Create Card — ข้อ 3 */}
+            <div className="fade-up" style={{ animationDelay: `${display.length * 50 + 40}ms` }}>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="pressable"
+                style={{
+                  width: '100%', borderRadius: 28, padding: '28px 20px',
+                  background: 'transparent',
+                  border: '2px dashed var(--b1)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: 10, cursor: 'pointer',
+                  transition: 'border-color 0.2s ease, background 0.2s ease',
+                  backgroundImage: `radial-gradient(circle at 50% 0%, var(--indigo-glow) 0%, transparent 65%)`,
+                }}
+              >
+                <div style={{
+                  width: 52, height: 52, borderRadius: 18,
+                  background: 'var(--indigo-glow)',
+                  border: '1px solid rgba(99,102,241,0.22)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 24,
+                  boxShadow: '0 4px 20px rgba(99,102,241,0.14)',
+                }}>
+                  🎒
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{
+                    fontSize: 15, fontWeight: 700, color: 'var(--t2)',
+                    margin: '0 0 3px',
+                    letterSpacing: '-0.01em',
+                    fontFamily: '"Noto Sans Thai Looped", "Noto Sans Thai", "SF Pro Rounded", system-ui, sans-serif',
+                  }}>
+                    + สร้างทริปใหม่กันเลย!
+                  </p>
+                  <p style={{ fontSize: 12, color: 'var(--t3)', margin: 0 }}>
+                    เพิ่มทริปถัดไปของคุณได้เลย ✨
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
         )}
       </div>
