@@ -1,6 +1,6 @@
 'use client'
 import { useMemo, useState } from 'react'
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { PieChart, Pie, Cell } from 'recharts'
 import type { Expense } from '@/types'
 import { formatCurrency } from '@/lib/utils/debt'
 
@@ -52,27 +52,25 @@ export default function ExpensePieChart({ expenses }: Props) {
       <div className="flex items-center gap-2 px-3 pb-4">
         {/* Donut */}
         <div className="relative shrink-0" style={{ width: 160, height: 160 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={48}
-                outerRadius={70}
-                paddingAngle={2}
-                dataKey="total"
-                onMouseEnter={(_: unknown, idx: number) => setActiveIdx(idx)}
-                onMouseLeave={() => setActiveIdx(null)}
-                onClick={(_: unknown, idx: number) => setActiveIdx(activeIdx === idx ? null : idx)}
-              >
-                {data.map((entry, i) => (
-                  <Cell key={entry.cat} fill={entry.color}
-                    style={{ cursor: 'pointer', transition: 'all 0.2s' }} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+          <PieChart width={160} height={160}>
+            <Pie
+              data={data}
+              cx={80}
+              cy={80}
+              innerRadius={48}
+              outerRadius={70}
+              paddingAngle={2}
+              dataKey="total"
+              onMouseEnter={(_: unknown, idx: number) => setActiveIdx(idx)}
+              onMouseLeave={() => setActiveIdx(null)}
+              onClick={(_: unknown, idx: number) => setActiveIdx(activeIdx === idx ? null : idx)}
+            >
+              {data.map((entry) => (
+                <Cell key={entry.cat} fill={entry.color}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s' }} />
+              ))}
+            </Pie>
+          </PieChart>
 
           {/* Centre label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
