@@ -14,6 +14,7 @@ import CountdownTimer from '@/components/trip/CountdownTimer'
 import InviteButton from '@/components/trip/InviteButton'
 import TripReadiness from '@/components/trip/TripReadiness'
 import EmergencyMeetupWidget from '@/components/trip/EmergencyMeetup'
+import StickyMemoBoard from '@/components/trip/StickyMemoBoard'
 import { fetchDestinationInfo, type DestinationInfo } from '@/lib/utils/destination'
 
 interface TripData extends Trip {
@@ -295,6 +296,9 @@ export default function TripOverviewPage() {
         {trip.destination_lat && trip.destination_lng && (
           <SmartTravelTips lat={trip.destination_lat} lng={trip.destination_lng} tripId={id} />
         )}
+
+        {/* Sticky Memo Board */}
+        <StickyMemoBoard tripId={id} currentUserId={currentUserId} />
 
         {/* Emergency Meetup */}
         <EmergencyMeetupWidget tripId={id} isHost={isHost} currentUserId={currentUserId} />

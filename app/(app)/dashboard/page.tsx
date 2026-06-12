@@ -217,52 +217,48 @@ export default function DashboardPage() {
             onClick={e => e.stopPropagation()}
             style={{ width: '100%', background: 'var(--s1)',
               borderRadius: '28px 28px 0 0', border: '1px solid var(--b1)',
-              padding: '0 20px 40px' }}
+              padding: '0 20px calc(40px + env(safe-area-inset-bottom,0px))' }}
           >
             <div className="sheet-handle" />
-            <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', margin: '4px 0 16px' }}>
-              เลือกธีม
+            <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', margin: '4px 0 4px' }}>
+              🎨 เลือก Palette
             </p>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--t3)', margin: '0 0 16px' }}>สไตล์คาเฟ่เกาหลี</p>
 
-              {/* Dark Slate */}
-              <button
-                onClick={() => { setTheme('dark-slate'); setShowTheme(false) }}
-                className="pressable"
-                style={{ flex: 1, padding: 16, borderRadius: 20, cursor: 'pointer', textAlign: 'left',
-                  background: '#05080f',
-                  border: `2px solid ${theme === 'dark-slate' ? '#6366f1' : 'rgba(255,255,255,0.08)'}` }}
-              >
-                <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                  <div style={{ flex: 1, height: 28, borderRadius: 8, background: '#0e1627' }} />
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#6366f1' }} />
-                </div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'white', margin: 0 }}>Dark Slate</p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>โทนเข้มสุดเท่</p>
-                {theme === 'dark-slate' && (
-                  <p style={{ fontSize: 11, color: '#818cf8', fontWeight: 600, margin: '8px 0 0' }}>✓ ใช้งานอยู่</p>
-                )}
-              </button>
-
-              {/* Warm Pastel */}
-              <button
-                onClick={() => { setTheme('warm-pastel'); setShowTheme(false) }}
-                className="pressable"
-                style={{ flex: 1, padding: 16, borderRadius: 20, cursor: 'pointer', textAlign: 'left',
-                  background: '#f5f0e8',
-                  border: `2px solid ${theme === 'warm-pastel' ? '#65a382' : 'rgba(0,0,0,0.10)'}` }}
-              >
-                <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                  <div style={{ flex: 1, height: 28, borderRadius: 8, background: '#ede8df' }} />
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#65a382' }} />
-                </div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#2d3748', margin: 0 }}>Warm Pastel</p>
-                <p style={{ fontSize: 11, color: 'rgba(45,55,72,0.5)', margin: '2px 0 0' }}>โทนครีมอบอุ่น</p>
-                {theme === 'warm-pastel' && (
-                  <p style={{ fontSize: 11, color: '#65a382', fontWeight: 600, margin: '8px 0 0' }}>✓ ใช้งานอยู่</p>
-                )}
-              </button>
-
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+              {([
+                { id: 'dark-slate',    label: 'Dark Slate',    sub: 'โทนเข้มสุดเท่',     bg: '#05080f', swatch: ['#0e1627','#6366f1','#8b5cf6'], textCol: 'white', checkCol: '#818cf8' },
+                { id: 'warm-pastel',   label: 'Warm Pastel',   sub: 'ครีมอบอุ่น 🍞',    bg: '#f5f0e8', swatch: ['#ede8df','#65a382','#e8a598'], textCol: '#2d3748', checkCol: '#65a382' },
+                { id: 'jeju-sunlight', label: 'Jeju Sunlight', sub: 'ส้มแสงแดด 🍊',    bg: '#fdf6ec', swatch: ['#fdecd6','#e8874a','#e86060'], textCol: '#3d2b1f', checkCol: '#e8874a' },
+                { id: 'matcha-latte',  label: 'Matcha Latte',  sub: 'เขียว Sage 🍵',  bg: '#eef2eb', swatch: ['#e4ece0','#5c8c5c','#c084a0'], textCol: '#1e2d1e', checkCol: '#5c8c5c' },
+              ] as const).map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => { setTheme(t.id); setShowTheme(false) }}
+                  className="pressable"
+                  style={{ padding: '14px 12px', borderRadius: 20, cursor: 'pointer', textAlign: 'left',
+                    background: t.bg,
+                    border: `2.5px solid ${theme === t.id ? t.swatch[1] : 'rgba(128,128,128,0.15)'}`,
+                    boxShadow: theme === t.id ? `0 4px 20px ${t.swatch[1]}44` : '0 2px 8px rgba(0,0,0,0.08)',
+                    transition: 'all 0.2s ease' }}
+                >
+                  {/* Swatch row */}
+                  <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                    {t.swatch.map((col, i) => (
+                      <div key={i} style={{ flex: i === 0 ? 2 : 1, height: 22, borderRadius: 7, background: col,
+                        boxShadow: `0 1px 4px ${col}55` }} />
+                    ))}
+                  </div>
+                  <p style={{ fontSize: 12, fontWeight: 800, color: t.textCol, margin: 0, letterSpacing: '-0.01em' }}>{t.label}</p>
+                  <p style={{ fontSize: 10, color: t.textCol, opacity: 0.5, margin: '2px 0 0' }}>{t.sub}</p>
+                  {theme === t.id && (
+                    <p style={{ fontSize: 10, color: t.checkCol, fontWeight: 700, margin: '8px 0 0',
+                      display: 'flex', alignItems: 'center', gap: 3 }}>
+                      ✦ ใช้งานอยู่
+                    </p>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         </div>

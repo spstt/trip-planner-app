@@ -85,46 +85,160 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
     setPreview({ att: attachment, url: data.signedUrl })
   }
 
+  // Category color map for ticket accent
+  const CAT_ACCENT: Record<string, { light: string; mid: string; dark: string }> = {
+    flight:       { light: '#dbeafe', mid: '#3b82f6', dark: '#1e40af' },
+    hotel:        { light: '#fef3c7', mid: '#f59e0b', dark: '#92400e' },
+    train:        { light: '#d1fae5', mid: '#10b981', dark: '#065f46' },
+    rental:       { light: '#ffedd5', mid: '#f97316', dark: '#9a3412' },
+    activity:     { light: '#ede9fe', mid: '#8b5cf6', dark: '#4c1d95' },
+    other:        { light: 'var(--s2)', mid: 'var(--t3)', dark: 'var(--t2)' },
+  }
+  const accent = CAT_ACCENT[booking.category] ?? CAT_ACCENT.other
+
   return (
     <>
-    <div className="glass rounded-2xl border border-white/5 overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full px-4 py-4 flex items-start gap-3 active:bg-white/5"
-      >
-        <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center shrink-0">
-          <Icon size={18} className={COLORS[booking.category] ?? 'text-slate-400'} />
-        </div>
-        <div className="flex-1 text-left">
-          <h4 className="font-semibold text-white text-sm">{booking.title}</h4>
-          {booking.provider && (
-            <p className="text-xs text-slate-400 mt-0.5">{booking.provider}</p>
-          )}
-          {booking.checkin_at && (
-            <p className="text-xs text-slate-500 mt-1">
-              {format(parseISO(booking.checkin_at), 'd MMM HH:mm', { locale: th })}
-              {booking.checkout_at && ` → ${format(parseISO(booking.checkout_at), 'd MMM', { locale: th })}`}
-            </p>
-          )}
-          {booking.booking_ref && (
-            <p className="text-xs text-indigo-400 mt-0.5 font-mono">{booking.booking_ref}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {booking.attachments.length > 0 && (
-            <span className="flex items-center gap-1 text-xs text-slate-500">
-              <Paperclip size={12} />
-              {booking.attachments.length}
-            </span>
-          )}
-          {expanded ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
-        </div>
-      </button>
+    {/* ── Vintage Ticket Card ── */}
+    <div style={{ position: 'relative', marginBottom: 4 }}>
 
-      {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-white/5">
+      {/* Serrated top edge */}
+      <div style={{
+        position: 'absolute', top: -8, left: 0, right: 0, height: 9, zIndex: 1,
+        backgroundImage: `radial-gradient(circle at 6px 0px, var(--bg) 5.5px, ${accent.light} 6px)`,
+        backgroundSize: '12px 9px',
+        backgroundRepeat: 'repeat-x',
+      }} />
+
+      {/* Main ticket body */}
+      <div style={{
+        background: accent.light,
+        borderRadius: 4,
+        overflow: 'hidden',
+        boxShadow: `0 4px 20px rgba(0,0,0,0.10), 0 1px 0 rgba(255,255,255,0.5) inset`,
+        border: `1px solid ${accent.mid}22`,
+        fontFamily: '"Noto Sans Thai Looped", "Noto Sans Thai", "Sarabun", "SF Pro Rounded", system-ui, sans-serif',
+      }}>
+
+        {/* Ticket header strip */}
+        <div style={{
+          background: `linear-gradient(135deg, ${accent.mid}, ${accent.dark})`,
+          padding: '8px 14px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8,
+              background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon size={15} style={{ color: 'white' }} />
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 800, color: 'white',
+                letterSpacing: '-0.01em', margin: 0, lineHeight: 1.2 }}>
+                {booking.title}
+              </p>
+              {booking.provider && (
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', margin: '1px 0 0' }}>
+                  {booking.provider}
+                </p>
+              )}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {booking.attachments.length > 0 && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3,
+                fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>
+                <Paperclip size={11} /> {booking.attachments.length}
+              </span>
+            )}
+            <button
+              onClick={() => setExpanded(!expanded)}
+              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8,
+                width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: 'white' }}
+            >
+              {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Perforation divider */}
+        <div style={{
+          height: 1,
+          backgroundImage: `repeating-linear-gradient(90deg, ${accent.mid}55 0px, ${accent.mid}55 6px, transparent 6px, transparent 12px)`,
+          margin: '0 14px',
+        }} />
+
+        {/* Ticket body content */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+            padding: '10px 14px 12px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}
+        >
+          <div style={{ textAlign: 'left' }}>
+            {booking.checkin_at && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: accent.dark, opacity: 0.55,
+                  textTransform: 'uppercase', letterSpacing: '0.07em' }}>DATE</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: accent.dark }}>
+                  {format(parseISO(booking.checkin_at), 'd MMM yyyy, HH:mm', { locale: th })}
+                  {booking.checkout_at && (
+                    <span style={{ fontWeight: 500, opacity: 0.7 }}>
+                      {' → '}{format(parseISO(booking.checkout_at), 'd MMM', { locale: th })}
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+            {booking.location && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: accent.dark, opacity: 0.55,
+                  textTransform: 'uppercase', letterSpacing: '0.07em' }}>WHERE</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: accent.dark, opacity: 0.8 }}>
+                  {booking.location}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Booking ref barcode-style */}
+          {booking.booking_ref && (
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <p style={{ fontSize: 8, fontWeight: 700, color: accent.dark, opacity: 0.45,
+                textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>REF</p>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1, marginBottom: 2 }}>
+                {booking.booking_ref.split('').slice(0,8).map((_, i) => (
+                  <div key={i} style={{
+                    width: 2, background: accent.dark, opacity: 0.5,
+                    height: [6,10,7,12,8,6,11,9][i % 8],
+                    borderRadius: 1,
+                  }} />
+                ))}
+              </div>
+              <p style={{ fontSize: 9, fontWeight: 800, color: accent.dark, letterSpacing: '0.05em',
+                fontFamily: 'monospace' }}>
+                {booking.booking_ref}
+              </p>
+            </div>
+          )}
+        </button>
+      </div>
+
+      {/* Serrated bottom edge */}
+      <div style={{
+        position: 'absolute', bottom: -8, left: 0, right: 0, height: 9, zIndex: 1,
+        backgroundImage: `radial-gradient(circle at 6px 9px, var(--bg) 5.5px, ${accent.light} 6px)`,
+        backgroundSize: '12px 9px',
+        backgroundRepeat: 'repeat-x',
+      }} />
+    </div>
+
+    {/* Expanded detail panel (below the ticket, separated) */}
+    {expanded && (
+      <div style={{ marginTop: 10, borderRadius: 16, overflow: 'hidden',
+        background: 'var(--s0)', border: '1px solid var(--b0)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        <div className="px-4 py-3 space-y-3">
           {booking.notes && (
-            <p className="text-xs text-slate-400 pt-2">{booking.notes}</p>
+            <p className="text-xs pt-1" style={{ color: 'var(--t2)', lineHeight: 1.6 }}>{booking.notes}</p>
           )}
 
           {/* Attachments */}
@@ -163,7 +277,8 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
           </div>
 
           {/* Upload button */}
-          <label className="flex items-center justify-center gap-2 border border-dashed border-slate-600 rounded-xl py-3 cursor-pointer active:bg-slate-900/50 transition-colors">
+          <label className="flex items-center justify-center gap-2 border border-dashed rounded-xl py-3 cursor-pointer transition-colors"
+            style={{ borderColor: 'var(--b1)' }}>
             {uploading ? (
               <span className="text-sm text-slate-400">กำลังอัปโหลด...</span>
             ) : (
@@ -181,8 +296,8 @@ export default function BookingCard({ booking, tripId, currentUserId, onRefresh 
             />
           </label>
         </div>
-      )}
-    </div>
+      </div>
+    )}
 
     {/* Attachment preview modal */}
     {preview && (

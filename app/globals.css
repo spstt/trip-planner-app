@@ -229,6 +229,38 @@ body {
 
 @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
+/* ── Ticket card (vintage serrated edge) ── */
+.ticket-card {
+  position: relative;
+  border-radius: 4px 4px 0 0;
+  overflow: visible;
+}
+.ticket-serrate-top,
+.ticket-serrate-bottom {
+  position: absolute;
+  left: 0; right: 0;
+  height: 12px;
+  pointer-events: none;
+}
+.ticket-serrate-top  { top: -12px; }
+.ticket-serrate-bottom { bottom: -12px; }
+
+/* Paw checkbox */
+@keyframes pawPop {
+  0%   { transform: scale(0.5); opacity: 0.3; }
+  60%  { transform: scale(1.25); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.paw-checked { animation: pawPop 0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* Memo board sticky note wobble */
+@keyframes stickIn {
+  0%   { transform: var(--rot) translateY(-18px) scale(0.88); opacity: 0; }
+  70%  { transform: var(--rot) translateY(4px) scale(1.02); }
+  100% { transform: var(--rot) translateY(0) scale(1); opacity: 1; }
+}
+.memo-stick { animation: stickIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
+
 /* ═══════════════════════════════════════════
    WARM PASTEL THEME
 ═══════════════════════════════════════════ */
@@ -294,4 +326,132 @@ body {
 }
 [data-theme="warm-pastel"] .ambient-page::after {
   background: radial-gradient(circle, rgba(232,165,152,0.10) 0%, transparent 70%);
+}
+
+/* ═══════════════════════════════════════════
+   JEJU SUNLIGHT THEME — ครีม / ส้มอ่อน / เบจ
+═══════════════════════════════════════════ */
+[data-theme="jeju-sunlight"] {
+  --bg:   #fdf6ec;
+  --bg-2: #faeedd;
+  --s0:   #fffdf8;
+  --s1:   #fef9f0;
+  --s2:   #fdecd6;
+  --b0:   rgba(180,110,50,0.10);
+  --b1:   rgba(180,110,50,0.18);
+  --b-accent: rgba(232,135,74,0.40);
+  --indigo:      #e8874a;
+  --violet:      #d4733a;
+  --pink:        #e86060;
+  --indigo-glow: rgba(232,135,74,0.15);
+  --t1:  #3d2b1f;
+  --t2:  rgba(61,43,31,0.62);
+  --t3:  rgba(61,43,31,0.35);
+  --surface:   #fffdf8;
+  --surface-2: #fef9f0;
+  --surface-3: #fdecd6;
+  --border:    rgba(180,110,50,0.10);
+}
+[data-theme="jeju-sunlight"] body   { background: var(--bg); color: var(--t1); }
+[data-theme="jeju-sunlight"] .glass {
+  background: rgba(255,253,248,0.72);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-color: rgba(180,110,50,0.10);
+}
+[data-theme="jeju-sunlight"] .glass-md {
+  background: rgba(253,246,236,0.90);
+  border-color: rgba(180,110,50,0.12);
+}
+[data-theme="jeju-sunlight"] .bottom-nav {
+  background: rgba(253,246,236,0.93);
+  border-top-color: rgba(180,110,50,0.10);
+}
+[data-theme="jeju-sunlight"] .shimmer {
+  background: linear-gradient(90deg, #fdecd6 25%, #fdf6ec 50%, #fdecd6 75%);
+  background-size: 300% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+[data-theme="jeju-sunlight"] .btn-primary {
+  background: linear-gradient(135deg, #e8874a, #d4733a);
+  box-shadow: 0 4px 24px rgba(232,135,74,0.38), 0 1px 0 rgba(255,255,255,0.3) inset;
+}
+[data-theme="jeju-sunlight"] .btn-primary:active {
+  box-shadow: 0 2px 12px rgba(232,135,74,0.25);
+}
+[data-theme="jeju-sunlight"] .gradient-text {
+  background: linear-gradient(125deg, #e8874a 0%, #d4733a 40%, #e86060 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+[data-theme="jeju-sunlight"] .ambient-page::before {
+  background: radial-gradient(circle, rgba(232,135,74,0.13) 0%, transparent 70%);
+}
+[data-theme="jeju-sunlight"] .ambient-page::after {
+  background: radial-gradient(circle, rgba(232,96,96,0.09) 0%, transparent 70%);
+}
+
+/* ═══════════════════════════════════════════
+   MATCHA LATTE THEME — เขียว Sage / ครีม
+═══════════════════════════════════════════ */
+[data-theme="matcha-latte"] {
+  --bg:   #eef2eb;
+  --bg-2: #e4ece0;
+  --s0:   #f8faf6;
+  --s1:   #f2f6ef;
+  --s2:   #e4ece0;
+  --b0:   rgba(60,100,60,0.09);
+  --b1:   rgba(60,100,60,0.16);
+  --b-accent: rgba(92,140,92,0.38);
+  --indigo:      #5c8c5c;
+  --violet:      #4a7a6a;
+  --pink:        #c084a0;
+  --indigo-glow: rgba(92,140,92,0.14);
+  --t1:  #1e2d1e;
+  --t2:  rgba(30,45,30,0.62);
+  --t3:  rgba(30,45,30,0.35);
+  --surface:   #f8faf6;
+  --surface-2: #f2f6ef;
+  --surface-3: #e4ece0;
+  --border:    rgba(60,100,60,0.09);
+}
+[data-theme="matcha-latte"] body   { background: var(--bg); color: var(--t1); }
+[data-theme="matcha-latte"] .glass {
+  background: rgba(248,250,246,0.72);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-color: rgba(60,100,60,0.09);
+}
+[data-theme="matcha-latte"] .glass-md {
+  background: rgba(238,242,235,0.90);
+  border-color: rgba(60,100,60,0.12);
+}
+[data-theme="matcha-latte"] .bottom-nav {
+  background: rgba(238,242,235,0.93);
+  border-top-color: rgba(60,100,60,0.09);
+}
+[data-theme="matcha-latte"] .shimmer {
+  background: linear-gradient(90deg, #e4ece0 25%, #eef2eb 50%, #e4ece0 75%);
+  background-size: 300% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+[data-theme="matcha-latte"] .btn-primary {
+  background: linear-gradient(135deg, #5c8c5c, #4a7a6a);
+  box-shadow: 0 4px 24px rgba(92,140,92,0.35), 0 1px 0 rgba(255,255,255,0.3) inset;
+}
+[data-theme="matcha-latte"] .btn-primary:active {
+  box-shadow: 0 2px 12px rgba(92,140,92,0.25);
+}
+[data-theme="matcha-latte"] .gradient-text {
+  background: linear-gradient(125deg, #5c8c5c 0%, #4a7a6a 40%, #c084a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+[data-theme="matcha-latte"] .ambient-page::before {
+  background: radial-gradient(circle, rgba(92,140,92,0.13) 0%, transparent 70%);
+}
+[data-theme="matcha-latte"] .ambient-page::after {
+  background: radial-gradient(circle, rgba(192,132,160,0.09) 0%, transparent 70%);
 }

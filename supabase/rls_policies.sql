@@ -268,3 +268,32 @@ create policy "item_comments: owner delete"
 -- SELECT: true (public)
 -- UPDATE: (storage.foldername(name))[1] = auth.uid()::text
 -- DELETE: (storage.foldername(name))[1] = auth.uid()::text
+
+-- ── 11. trip_memos (Sticky Memo Board) ─────────────────────────
+-- สร้างตารางก่อน (ถ้ายังไม่มี):
+create table if not exists trip_memos (
+  id          uuid primary key default gen_random_uuid(),
+  trip_id     uuid references trips(id) on delete cascade not null,
+  user_id     uuid references profiles(id) on delete cascade not null,
+  body        text not null check (char_length(body) <= 120),
+  color       text not null default '#fef9c3',
+  rotation    real not null default 0,
+  created_at  timestamptz default now()
+);
+
+alter table trip_memos enable row level security;
+
+create policy "trip_memos: members select"
+  on trip_memos for select
+  using (is_trip_member(trip_id));
+
+create policy "trip_memos: members insert"
+  on trip_memos for insert
+  with check (
+    is_trip_member(trip_id)
+    and user_id = auth.uid()
+  );
+
+create policy "trip_memos: owner delete"
+  on trip_memos for delete
+  using (user_id = auth.uid());

@@ -8,6 +8,49 @@ import { cn } from '@/lib/utils/cn'
 import Image from 'next/image'
 import confetti from 'canvas-confetti'
 
+// Paw icon checkbox — outline when unchecked, pink fill when checked
+function PawIcon({ checked }: { checked: boolean }) {
+  return (
+    <svg
+      width="26" height="26" viewBox="0 0 26 26" fill="none"
+      className={checked ? 'paw-checked' : ''}
+    >
+      {/* Main paw pad */}
+      <ellipse cx="13" cy="15.5" rx="6.2" ry="5.5"
+        fill={checked ? '#f9a8d4' : 'none'}
+        stroke={checked ? '#f472b6' : '#64748b'}
+        strokeWidth="1.8"
+      />
+      {/* Top-left toe */}
+      <ellipse cx="7.2" cy="9.5" rx="2.3" ry="2.8"
+        fill={checked ? '#fbcfe8' : 'none'}
+        stroke={checked ? '#f472b6' : '#64748b'}
+        strokeWidth="1.6"
+      />
+      {/* Top-center toe */}
+      <ellipse cx="11.6" cy="7.5" rx="2.3" ry="2.8"
+        fill={checked ? '#fbcfe8' : 'none'}
+        stroke={checked ? '#f472b6' : '#64748b'}
+        strokeWidth="1.6"
+      />
+      {/* Top-right-center toe */}
+      <ellipse cx="16" cy="7.8" rx="2.3" ry="2.8"
+        fill={checked ? '#fbcfe8' : 'none'}
+        stroke={checked ? '#f472b6' : '#64748b'}
+        strokeWidth="1.6"
+      />
+      {/* Top-right toe */}
+      <ellipse cx="19.8" cy="9.8" rx="2.2" ry="2.6"
+        fill={checked ? '#fbcfe8' : 'none'}
+        stroke={checked ? '#f472b6' : '#64748b'}
+        strokeWidth="1.6"
+      />
+      {/* Inner glow dot when checked */}
+      {checked && <ellipse cx="13" cy="16" rx="2.5" ry="2" fill="#f472b6" opacity="0.35" />}
+    </svg>
+  )
+}
+
 // Packing template categories
 const TEMPLATES: { label: string; emoji: string; items: string[] }[] = [
   {
@@ -260,14 +303,10 @@ export default function ChecklistPage() {
               >
                 <button
                   onClick={() => toggleItem(item)}
-                  className={cn(
-                    'w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all',
-                    item.is_checked
-                      ? 'bg-green-500 border-green-400'
-                      : 'border-slate-600'
-                  )}
+                  className="shrink-0 active:scale-90 transition-transform"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                 >
-                  {item.is_checked && <span className="text-white text-xs font-bold">✓</span>}
+                  <PawIcon checked={item.is_checked} />
                 </button>
 
                 <div className="flex-1 min-w-0">
