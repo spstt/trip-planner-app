@@ -297,3 +297,72 @@ create policy "trip_memos: members insert"
 create policy "trip_memos: owner delete"
   on trip_memos for delete
   using (user_id = auth.uid());
+
+-- ── 12. bookings + booking_attachments (is_private RLS) ─────────
+-- รัน SQL DDL นี้ก่อน (เพิ่มคอลัมน์ใหม่):
+-- alter table bookings add column if not exists is_private boolean not null default false;
+-- alter table bookings add column if not exists metadata jsonb default '{}';
+-- grant select,insert,update,delete on bookings to authenticated;
+-- grant select,insert,update,delete on booking_attachments to authenticated;
+
+alter table bookings enable row level security;
+alter table booking_attachments enable row level security;
+
+-- bookings SELECT:
+--   is_private=false → เพื่อนในทริปดูได้ทุกคน
+--   is_private=true  → ดูได้เฉพาะคนสร้าง
+drop policy if exists "bookings: select"         on bookings;
+drop policy if exists "bookings: insert"         on bookings;
+drop policy if exists "bookings: update"         on bookings;
+drop policy if exists "bookings: delete"         on bookings;
+
+create policy "bookings: select"
+  on bookings for select
+  using (
+    (is_private = false and is_trip_member(trip_id))
+    or (is_private = true  and created_by = auth.uid())
+  );
+
+create policy "bookings: insert"
+  on bookings for insert
+  with check (
+    is_trip_member(trip_id)
+    and created_by = auth.uid()
+  );
+
+create policy "bookings: update"
+  on bookings for update
+  using (created_by = auth.uid());
+
+create policy "bookings: delete"
+  on bookings for delete
+  using (created_by = auth.uid());
+
+-- booking_attachments SELECT: ตามสิทธิ์ของ booking แม่
+drop policy if exists "booking_attachments: select"  on booking_attachments;
+drop policy if exists "booking_attachments: insert"  on booking_attachments;
+drop policy if exists "booking_attachments: delete"  on booking_attachments;
+
+create policy "booking_attachments: select"
+  on booking_attachments for select
+  using (
+    exists (
+      select 1 from bookings b
+      where b.id = booking_attachments.booking_id
+        and (
+          (b.is_private = false and is_trip_member(b.trip_id))
+          or (b.is_private = true  and b.created_by = auth.uid())
+        )
+    )
+  );
+
+create policy "booking_attachments: insert"
+  on booking_attachments for insert
+  with check (
+    uploaded_by = auth.uid()
+    and is_trip_member(trip_id)
+  );
+
+create policy "booking_attachments: delete"
+  on booking_attachments for delete
+  using (uploaded_by = auth.uid());

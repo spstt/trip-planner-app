@@ -121,6 +121,8 @@ export interface Booking {
   checkout_at: string | null
   location: string | null
   notes: string | null
+  is_private: boolean
+  metadata: Record<string, string> | null
   created_by: string
   created_at: string
   updated_at: string
