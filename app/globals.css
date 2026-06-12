@@ -226,3 +226,72 @@ body {
 .hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
 .hide-scrollbar::-webkit-scrollbar { display:none; }
 .timeline-line { position:absolute; left:19px; top:44px; bottom:0; width:2px; background:linear-gradient(to bottom,var(--indigo),transparent); }
+
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+/* ═══════════════════════════════════════════
+   WARM PASTEL THEME
+═══════════════════════════════════════════ */
+[data-theme="warm-pastel"] {
+  --bg:   #f5f0e8;
+  --bg-2: #ede8df;
+  --s0: #ffffff;
+  --s1: #f8f4ee;
+  --s2: #ede8df;
+  --b0: rgba(0,0,0,0.07);
+  --b1: rgba(0,0,0,0.12);
+  --b-accent: rgba(101,163,130,0.4);
+  --indigo: #65a382;
+  --violet: #8fbc8f;
+  --pink:   #e8a598;
+  --indigo-glow: rgba(101,163,130,0.15);
+  --t1: #2d3748;
+  --t2: rgba(45,55,72,0.65);
+  --t3: rgba(45,55,72,0.35);
+  --surface:   #ffffff;
+  --surface-2: #f8f4ee;
+  --surface-3: #ede8df;
+  --border:    rgba(0,0,0,0.07);
+}
+[data-theme="warm-pastel"] body {
+  background: var(--bg);
+  color: var(--t1);
+}
+[data-theme="warm-pastel"] .glass {
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-color: rgba(0,0,0,0.08);
+}
+[data-theme="warm-pastel"] .glass-md {
+  background: rgba(245,240,232,0.88);
+  border-color: rgba(0,0,0,0.08);
+}
+[data-theme="warm-pastel"] .bottom-nav {
+  background: rgba(245,240,232,0.92);
+  border-top-color: rgba(0,0,0,0.07);
+}
+[data-theme="warm-pastel"] .shimmer {
+  background: linear-gradient(90deg, #ede8df 25%, #f5f0e8 50%, #ede8df 75%);
+  background-size: 300% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+[data-theme="warm-pastel"] .btn-primary {
+  background: linear-gradient(135deg, #65a382, #8fbc8f);
+  box-shadow: 0 4px 24px rgba(101,163,130,0.35), 0 1px 0 rgba(255,255,255,0.3) inset;
+}
+[data-theme="warm-pastel"] .btn-primary:active {
+  box-shadow: 0 2px 12px rgba(101,163,130,0.25);
+}
+[data-theme="warm-pastel"] .gradient-text {
+  background: linear-gradient(125deg, #65a382 0%, #8fbc8f 40%, #e8a598 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+[data-theme="warm-pastel"] .ambient-page::before {
+  background: radial-gradient(circle, rgba(101,163,130,0.12) 0%, transparent 70%);
+}
+[data-theme="warm-pastel"] .ambient-page::after {
+  background: radial-gradient(circle, rgba(232,165,152,0.10) 0%, transparent 70%);
+}

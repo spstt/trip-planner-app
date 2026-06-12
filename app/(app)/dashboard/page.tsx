@@ -1,11 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus } from 'lucide-react'
+import { Plus, Palette } from 'lucide-react'
 import { parseISO, isBefore, startOfToday } from 'date-fns'
 import { cn } from '@/lib/utils/cn'
 import type { Trip, TripMember, Profile } from '@/types'
 import CreateTripModal from '@/components/trip/CreateTripModal'
+import { useTheme } from '@/lib/hooks/useTheme'
 import TripCard from '@/components/trip/TripCard'
 import Image from 'next/image'
 
@@ -25,8 +26,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming')
   const [showCreate, setShowCreate] = useState(false)
+  const [showTheme, setShowTheme] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
   const supabase = createClient()
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => { loadTrips() }, [])
 
@@ -57,8 +60,14 @@ export default function DashboardPage() {
     <div style={{ minHeight: '100%', position: 'relative' }}>
 
       {/* Ambient background glow */}
-      <div style={{ position: 'fixed', top: '-20%', right: '-10%', width: '70vw', height: '50vh', background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 65%)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
-      <div style={{ position: 'fixed', bottom: '15%', left: '-15%', width: '50vw', height: '40vh', background: 'radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 65%)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'fixed', top: '-20%', right: '-10%', width: '70vw', height: '50vh', borderRadius: '50%', pointerEvents: 'none', zIndex: 0,
+        background: theme === 'warm-pastel'
+          ? 'radial-gradient(circle, rgba(101,163,130,0.12) 0%, transparent 65%)'
+          : 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 65%)' }} />
+      <div style={{ position: 'fixed', bottom: '15%', left: '-15%', width: '50vw', height: '40vh', borderRadius: '50%', pointerEvents: 'none', zIndex: 0,
+        background: theme === 'warm-pastel'
+          ? 'radial-gradient(circle, rgba(232,165,152,0.10) 0%, transparent 65%)'
+          : 'radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 65%)' }} />
 
       <div style={{ position: 'relative', zIndex: 1, padding: '20px 20px 8px' }}>
 
@@ -83,6 +92,19 @@ export default function DashboardPage() {
                 : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: 'white' }}>{profile?.display_name?.[0]?.toUpperCase() ?? '?'}</div>
               }
             </div>
+
+            {/* Theme switcher button */}
+            <button
+              onClick={() => setShowTheme(true)}
+              className="pressable"
+              style={{
+                width: 44, height: 44, borderRadius: 14,
+                background: 'var(--s1)', border: '1px solid var(--b1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Palette size={20} color="var(--t2)" />
+            </button>
 
             {/* New trip button */}
             <button
@@ -178,6 +200,70 @@ export default function DashboardPage() {
           onClose={() => setShowCreate(false)}
           onCreated={(trip) => { setTrips(prev => [trip as TripWithMembers, ...prev]); setShowCreate(false) }}
         />
+      )}
+
+      {/* ── Theme Switcher Sheet ── */}
+      {showTheme && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'flex-end',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)' }}
+          onClick={() => setShowTheme(false)}
+        >
+          <div
+            className="spring-enter"
+            onClick={e => e.stopPropagation()}
+            style={{ width: '100%', background: 'var(--s1)',
+              borderRadius: '28px 28px 0 0', border: '1px solid var(--b1)',
+              padding: '0 20px 40px' }}
+          >
+            <div className="sheet-handle" />
+            <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', margin: '4px 0 16px' }}>
+              เลือกธีม
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+
+              {/* Dark Slate */}
+              <button
+                onClick={() => { setTheme('dark-slate'); setShowTheme(false) }}
+                className="pressable"
+                style={{ flex: 1, padding: 16, borderRadius: 20, cursor: 'pointer', textAlign: 'left',
+                  background: '#05080f',
+                  border: `2px solid ${theme === 'dark-slate' ? '#6366f1' : 'rgba(255,255,255,0.08)'}` }}
+              >
+                <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                  <div style={{ flex: 1, height: 28, borderRadius: 8, background: '#0e1627' }} />
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#6366f1' }} />
+                </div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'white', margin: 0 }}>Dark Slate</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>โทนเข้มสุดเท่</p>
+                {theme === 'dark-slate' && (
+                  <p style={{ fontSize: 11, color: '#818cf8', fontWeight: 600, margin: '8px 0 0' }}>✓ ใช้งานอยู่</p>
+                )}
+              </button>
+
+              {/* Warm Pastel */}
+              <button
+                onClick={() => { setTheme('warm-pastel'); setShowTheme(false) }}
+                className="pressable"
+                style={{ flex: 1, padding: 16, borderRadius: 20, cursor: 'pointer', textAlign: 'left',
+                  background: '#f5f0e8',
+                  border: `2px solid ${theme === 'warm-pastel' ? '#65a382' : 'rgba(0,0,0,0.10)'}` }}
+              >
+                <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                  <div style={{ flex: 1, height: 28, borderRadius: 8, background: '#ede8df' }} />
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#65a382' }} />
+                </div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#2d3748', margin: 0 }}>Warm Pastel</p>
+                <p style={{ fontSize: 11, color: 'rgba(45,55,72,0.5)', margin: '2px 0 0' }}>โทนครีมอบอุ่น</p>
+                {theme === 'warm-pastel' && (
+                  <p style={{ fontSize: 11, color: '#65a382', fontWeight: 600, margin: '8px 0 0' }}>✓ ใช้งานอยู่</p>
+                )}
+              </button>
+
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

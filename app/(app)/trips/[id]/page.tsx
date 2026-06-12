@@ -1,28 +1,27 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
-import { MapPin, Users, Globe, Lock, Trash2, MoreHorizontal } from 'lucide-react'
+import { MapPin, Users, Globe, Lock, Trash2, ExternalLink, Camera, Loader2 } from 'lucide-react'
 import { toast } from '@/components/ui/Toast'
 import { parseISO, differenceInDays, format } from 'date-fns'
 import { th } from 'date-fns/locale'
 import type { Trip, TripMember, Profile } from '@/types'
 import WeatherWidget from '@/components/trip/WeatherWidget'
+import SmartTravelTips from '@/components/trip/SmartTravelTips'
 import CountdownTimer from '@/components/trip/CountdownTimer'
 import InviteButton from '@/components/trip/InviteButton'
 import TripReadiness from '@/components/trip/TripReadiness'
-import DestinationWidget from '@/components/trip/DestinationWidget'
+import { fetchDestinationInfo, type DestinationInfo } from '@/lib/utils/destination'
 
 interface TripData extends Trip {
   trip_members: (TripMember & { profile: Profile })[]
 }
 
 const GRADIENTS = [
-  ['#6366f1','#a855f7'],
-  ['#ec4899','#f97316'],
-  ['#06b6d4','#3b82f6'],
-  ['#10b981','#06b6d4'],
+  ['#6366f1','#a855f7'], ['#ec4899','#f97316'],
+  ['#06b6d4','#3b82f6'], ['#10b981','#06b6d4'],
   ['#f59e0b','#ef4444'],
 ]
 
@@ -33,8 +32,12 @@ export default function TripOverviewPage() {
   const [trip, setTrip] = useState<TripData | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showMenu, setShowMenu] = useState(false)
+  const [destInfo, setDestInfo] = useState<DestinationInfo | null>(null)
+  const [imgError, setImgError] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadTrip() }, [id])
 
@@ -47,192 +50,295 @@ export default function TripOverviewPage() {
       .eq('id', id).single()
     setTrip(data as TripData)
     setLoading(false)
+
+    // Fetch destination photo in background
+    if (data?.destination) {
+      fetchDestinationInfo(data.destination).then(setDestInfo).catch(() => {})
+    }
   }
 
-  async function deleteTrip() {
-    setShowMenu(false)
-    setConfirmDelete(true)
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const path = `${id}/${Date.now()}.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('trip-covers')
+      .upload(path, file, { upsert: true })
+    if (upErr) {
+      toast('อัปโหลดรูปไม่สำเร็จ: ' + upErr.message, 'error')
+      setUploading(false)
+      return
+    }
+    const { data: { publicUrl } } = supabase.storage.from('trip-covers').getPublicUrl(path)
+    const { error: dbErr } = await supabase.from('trips').update({ cover_image_url: publicUrl }).eq('id', id)
+    if (dbErr) {
+      toast('บันทึกรูปปกไม่สำเร็จ', 'error')
+      setUploading(false)
+      return
+    }
+    setTrip(prev => prev ? { ...prev, cover_image_url: publicUrl } : prev)
+    setImgError(false)
+    toast('อัปเดตรูปปกทริปแล้ว ✓')
+    setUploading(false)
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  async function confirmDeleteTrip() {
-    setConfirmDelete(false)
+  async function handleDelete() {
+    setDeleting(true)
     const { error } = await supabase.from('trips').delete().eq('id', id)
+    setDeleting(false)
+    setConfirmDelete(false)
     if (error) { toast('ลบไม่สำเร็จ: ' + error.message, 'error'); return }
     toast('ลบทริปแล้ว')
     router.push('/dashboard')
   }
 
   if (loading) return (
-    <div className="space-y-0">
-      <div className="shimmer h-56 w-full" />
-      <div className="px-4 pt-4 space-y-3">
-        <div className="shimmer rounded-2xl h-28" />
-        <div className="shimmer rounded-2xl h-20" />
+    <div>
+      <div className="shimmer" style={{ height: 260, width: '100%' }} />
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="shimmer" style={{ borderRadius: 20, height: 110 }} />
+        <div className="shimmer" style={{ borderRadius: 20, height: 80 }} />
       </div>
     </div>
   )
 
-  if (!trip) return <div className="p-8 text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>ไม่พบทริปนี้</div>
+  if (!trip) return <div style={{ padding: 32, textAlign: 'center', color: 'var(--t3)' }}>ไม่พบทริปนี้</div>
 
   const isHost = trip.trip_members.some(m => m.user_id === currentUserId && m.role === 'host')
   const startDate = parseISO(trip.start_date)
-  const endDate = parseISO(trip.end_date)
-  const tripDays = differenceInDays(endDate, startDate) + 1
-  const [c1, c2] = GRADIENTS[trip.id.charCodeAt(0) % GRADIENTS.length]
+  const endDate   = parseISO(trip.end_date)
+  const tripDays  = differenceInDays(endDate, startDate) + 1
+  const [c1, c2]  = GRADIENTS[trip.id.charCodeAt(0) % GRADIENTS.length]
+
+  // Destination photo: use original (high quality) not thumbnail
+  const heroImg = !imgError ? (trip.cover_image_url ?? destInfo?.imageUrl ?? destInfo?.imageThumb) : null
 
   return (
-    <div className="pb-6">
+    <div style={{ paddingBottom: 24 }}>
 
-      {/* ── Hero Cover ── */}
-      <div className="relative h-56 overflow-hidden" style={{ background: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)` }}>
-        {trip.cover_image_url && (
-          <Image src={trip.cover_image_url} alt={trip.name} fill className="object-cover opacity-40 mix-blend-overlay" />
+      {/* ══════════════════════════════════════
+          HERO — destination photo OR gradient
+          ══════════════════════════════════════ */}
+      <div style={{ position: 'relative', height: 280, overflow: 'hidden',
+        background: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)` }}>
+
+        {/* Destination photo */}
+        {heroImg && (
+          <Image
+            src={heroImg}
+            alt={trip.destination}
+            fill
+            sizes="100vw"
+            style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
+            onError={() => setImgError(true)}
+            priority
+          />
         )}
-        {/* Layered overlays for depth */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)' }} />
 
-        {/* ⋯ Menu button — top right */}
-        {isHost && (
-          <div className="absolute top-4 right-4 z-10">
+        {/* Gradient overlays — top fade + bottom fade for readability */}
+        <div style={{ position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.7) 80%, rgba(5,8,15,1) 100%)' }} />
+
+        {/* Top-right actions: cover upload (host) + Wikipedia badge */}
+        <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, alignItems: 'center' }}>
+          {isHost && (
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="pressable w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(12px)' }}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="pressable"
+              style={{ display: 'flex', alignItems: 'center', gap: 4,
+                background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
+                padding: '5px 10px', borderRadius: 99, fontSize: 10,
+                color: 'rgba(255,255,255,0.8)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                cursor: uploading ? 'not-allowed' : 'pointer' }}
             >
-              <MoreHorizontal size={18} className="text-white" />
+              {uploading
+                ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+                : <Camera size={10} />}
+              {uploading ? 'กำลังอัปโหลด...' : 'เปลี่ยนรูปปก'}
             </button>
-            {showMenu && (
-              <div className="absolute right-0 top-11 rounded-2xl overflow-hidden shadow-2xl z-20 w-40"
-                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                <button onClick={deleteTrip}
-                  className="w-full px-4 py-3 flex items-center gap-2.5 text-sm text-red-400 active:bg-red-500/10">
-                  <Trash2 size={15} /> ลบทริป
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+          {heroImg && destInfo?.wikiUrl && (
+            <a href={destInfo.wikiUrl} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: 4,
+                background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
+                padding: '4px 8px', borderRadius: 99, textDecoration: 'none',
+                fontSize: 10, color: 'rgba(255,255,255,0.6)',
+                border: '1px solid rgba(255,255,255,0.1)' }}>
+              <Globe size={9} /> Wikipedia <ExternalLink size={9} />
+            </a>
+          )}
+        </div>
+        {/* Hidden file input for cover image */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleCoverUpload}
+        />
 
-        {/* Trip info — bottom of hero */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
-          {/* Tags row */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium flex items-center gap-1"
-              style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,0.8)' }}>
-              {trip.is_international ? <><Globe size={10} /> ต่างประเทศ</> : <><MapPin size={10} /> ในประเทศ</>}
+        {/* ── Trip info at bottom of hero ── */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 20px' }}>
+          {/* Badges */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4,
+              background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)',
+              padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(255,255,255,0.15)' }}>
+              {trip.is_international ? <><Globe size={10}/> ต่างประเทศ</> : <><MapPin size={10}/> ในประเทศ</>}
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium"
-              style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,0.7)' }}>
+            <span style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)',
+              padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(255,255,255,0.15)' }}>
               {tripDays} วัน
             </span>
             {trip.rates_locked_at && (
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium flex items-center gap-1"
-                style={{ background: 'rgba(245,158,11,0.25)', color: '#fcd34d' }}>
-                <Lock size={10} /> ล็อคเรท
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4,
+                background: 'rgba(245,158,11,0.2)', padding: '4px 10px', borderRadius: 99,
+                fontSize: 11, fontWeight: 600, color: '#fcd34d' }}>
+                <Lock size={10}/> ล็อคเรท
               </span>
             )}
           </div>
 
           {/* Trip name */}
-          <h1 className="text-[26px] font-black text-white leading-tight tracking-tight drop-shadow-lg">
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: 'white', letterSpacing: '-0.03em',
+            lineHeight: 1.1, margin: 0, textShadow: '0 2px 16px rgba(0,0,0,0.5)' }}>
             {trip.name}
           </h1>
-          <p className="text-sm mt-1 flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            <MapPin size={12} />
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 5,
+            display: 'flex', alignItems: 'center', gap: 5 }}>
+            <MapPin size={12}/>
             {trip.destination}
-            <span className="mx-1 opacity-40">·</span>
+            <span style={{ opacity: 0.4 }}>·</span>
             {format(startDate, 'd MMM', { locale: th })} – {format(endDate, 'd MMM yy', { locale: th })}
           </p>
         </div>
       </div>
 
-      {/* ── Content ── */}
-      <div className="px-4 space-y-3 mt-4">
+      {/* ══════════════════════════════════════
+          CONTENT
+          ══════════════════════════════════════ */}
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Countdown */}
         <CountdownTimer startDate={trip.start_date} endDate={trip.end_date} />
 
-        {/* Members */}
-        <div className="rounded-2xl px-4 py-3.5 space-y-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users size={15} className="text-indigo-400" />
-              <span className="text-sm font-semibold text-white">{trip.trip_members.length} คนในทริป</span>
+        {/* Members + Invite */}
+        <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--s0)', border: '1px solid var(--b0)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Users size={15} color="#818cf8" />
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>{trip.trip_members.length} คนในทริป</span>
             </div>
             {isHost && <InviteButton tripId={trip.id} />}
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
             {trip.trip_members.map(m => (
-              <div key={m.user_id} className="flex flex-col items-center gap-1">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden"
-                  style={{ background: `linear-gradient(135deg,${c1},${c2})`, border: '2px solid var(--surface-3)' }}>
+              <div key={m.user_id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 16, overflow: 'hidden',
+                  background: `linear-gradient(135deg,${c1},${c2})`,
+                  border: '2px solid var(--s2)', flexShrink: 0 }}>
                   {m.profile?.avatar_url
-                    ? <Image src={m.profile.avatar_url} alt="" width={48} height={48} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-lg font-bold text-white">{m.profile?.display_name?.[0]?.toUpperCase()}</div>
+                    ? <Image src={m.profile.avatar_url} alt="" width={48} height={48} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'white' }}>{m.profile?.display_name?.[0]?.toUpperCase()}</div>
                   }
                 </div>
-                <span className="text-[10px] max-w-[48px] truncate text-center" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                <span style={{ fontSize: 10, color: 'var(--t3)', maxWidth: 52, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
                   {m.profile?.display_name}
                 </span>
-                {m.role === 'host' && (
-                  <span className="text-[9px] font-semibold -mt-1" style={{ color: '#818cf8' }}>Host</span>
-                )}
+                {m.role === 'host' && <span style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', marginTop: -2 }}>Host</span>}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Smart Readiness + Prompts */}
-        <TripReadiness
-          trip={trip}
-          members={trip.trip_members}
-          currentUserId={currentUserId}
-          isHost={isHost}
-        />
+        {/* Trip Readiness */}
+        <TripReadiness trip={trip} members={trip.trip_members} currentUserId={currentUserId} isHost={isHost} />
 
-        {/* ── Destination + Weather section ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Section label */}
-          <p className="label px-1">ปลายทาง & สภาพอากาศ</p>
+        {/* Wikipedia description */}
+        {destInfo?.extract && (
+          <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--s0)', border: '1px solid var(--b0)' }}>
+            <p style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--t2)', margin: 0 }}>
+              {destInfo.extract}
+            </p>
+          </div>
+        )}
 
-          {/* Destination Photo */}
-          <DestinationWidget destination={trip.destination} tripName={trip.name} />
+        {/* Weather */}
+        {trip.destination_lat && trip.destination_lng && (
+          <WeatherWidget lat={trip.destination_lat} lng={trip.destination_lng} destination={trip.destination} />
+        )}
 
-          {/* Weather */}
-          {trip.destination_lat && trip.destination_lng && (
-            <WeatherWidget lat={trip.destination_lat} lng={trip.destination_lng} destination={trip.destination} />
-          )}
-        </div>
+        {/* Smart packing tips derived from weather forecast */}
+        {trip.destination_lat && trip.destination_lng && (
+          <SmartTravelTips lat={trip.destination_lat} lng={trip.destination_lng} tripId={id} />
+        )}
+
+        {/* Delete trip — host only, at bottom */}
+        {isHost && (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              width: '100%', padding: '13px', borderRadius: 16, border: '1px solid rgba(239,68,68,0.2)',
+              background: 'rgba(239,68,68,0.06)', color: '#f87171',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}
+            className="pressable"
+          >
+            <Trash2 size={15} /> ลบทริปนี้
+          </button>
+        )}
       </div>
 
-      {/* Backdrop for menu */}
-      {showMenu && <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />}
-
-      {/* ── Confirm Delete Dialog ── */}
+      {/* ══════════════════════════════════════
+          CONFIRM DELETE DIALOG
+          ══════════════════════════════════════ */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
-          <div className="spring-enter w-full max-w-sm rounded-3xl p-6 space-y-4" style={{ background: 'var(--s1)', border: '1px solid var(--b1)' }}>
-            <div className="text-center space-y-2">
-              <div className="text-4xl">🗑️</div>
-              <h3 className="text-lg font-bold text-white">ลบทริปนี้?</h3>
-              <p className="text-sm" style={{ color: 'var(--t2)' }}>
-                ข้อมูลทั้งหมดในทริป "{trip?.name}" จะถูกลบถาวร และไม่สามารถกู้คืนได้
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px',
+          background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(12px)' }}
+          onClick={() => setConfirmDelete(false)}
+        >
+          <div
+            className="spring-enter"
+            onClick={e => e.stopPropagation()}
+            style={{ width: '100%', maxWidth: 360, borderRadius: 28, padding: 24,
+              background: 'var(--s1)', border: '1px solid var(--b1)',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.5)' }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 44, marginBottom: 12 }}>🗑️</div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', margin: '0 0 8px' }}>
+                ลบทริปนี้?
+              </h3>
+              <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.5, margin: 0 }}>
+                ข้อมูลทั้งหมดใน <strong style={{ color: 'var(--t1)' }}>{trip.name}</strong> จะถูกลบถาวร ไม่สามารถกู้คืนได้
               </p>
             </div>
-            <div className="flex gap-3">
+            <div style={{ display: 'flex', gap: 10 }}>
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="flex-1 py-3 rounded-2xl text-sm font-semibold"
-                style={{ background: 'var(--s2)', color: 'var(--t2)' }}
+                style={{ flex: 1, padding: '13px', borderRadius: 16, border: '1px solid var(--b0)',
+                  background: 'var(--s2)', color: 'var(--t2)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
               >
                 ยกเลิก
               </button>
               <button
-                onClick={confirmDeleteTrip}
-                className="flex-1 py-3 rounded-2xl text-sm font-bold text-white pressable"
-                style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 4px 16px rgba(239,68,68,0.3)' }}
+                onClick={handleDelete}
+                disabled={deleting}
+                className="pressable"
+                style={{ flex: 1, padding: '13px', borderRadius: 16, border: 'none',
+                  background: deleting ? 'rgba(239,68,68,0.4)' : 'linear-gradient(135deg,#ef4444,#dc2626)',
+                  color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(239,68,68,0.35)' }}
               >
-                ลบทริป
+                {deleting ? 'กำลังลบ...' : 'ลบทริป'}
               </button>
             </div>
           </div>
