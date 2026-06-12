@@ -41,6 +41,7 @@ export default function AddExpenseModal({ tripId, trip, members, currentUserId, 
   const [payers, setPayers] = useState<Record<string, string>>({ [currentUserId]: '' })
   const [splitters, setSplitters] = useState<Set<string>>(new Set(members.map(m => m.user_id)))
   const [customSplits, setCustomSplits] = useState<Record<string, string>>({})
+  const [isCash, setIsCash] = useState(false)
 
   function set(k: string, v: string) {
     setForm(f => ({ ...f, [k]: v }))
@@ -91,36 +92,35 @@ export default function AddExpenseModal({ tripId, trip, members, currentUserId, 
       split_type: form.split_type,
       notes: form.notes || null,
       created_by: currentUserId,
+      is_cash: isCash,
     }).select().single()
 
     if (!expense) { setLoading(false); return }
 
-    // Insert participants
-    const payerEntries = Object.entries(payers)
-      .filter(([, amt]) => amt !== '' && parseFloat(amt) > 0)
-      .map(([userId, amt]) => ({
+    // Cash expenses: don't insert participants — won't affect settle up
+    if (!isCash) {
+      // Payer amount: default to full amountTHB if left empty
+      const payerEntries = Object.entries(payers).map(([userId, amt]) => ({
         expense_id: expense.id,
         trip_id: tripId,
         user_id: userId,
         role: 'payer' as const,
-        amount_thb: parseFloat(amt),
+        amount_thb: amt !== '' && parseFloat(amt) > 0 ? parseFloat(amt) : amountTHB,
       }))
 
-    const splitAmount = form.split_type === 'equal'
-      ? amountTHB / splitterCount
-      : 0
+      const splitAmount = form.split_type === 'equal' ? amountTHB / splitterCount : 0
+      const splitterEntries = [...splitters].map(userId => ({
+        expense_id: expense.id,
+        trip_id: tripId,
+        user_id: userId,
+        role: 'splitter' as const,
+        amount_thb: form.split_type === 'equal'
+          ? splitAmount
+          : parseFloat(customSplits[userId] || '0'),
+      }))
 
-    const splitterEntries = [...splitters].map(userId => ({
-      expense_id: expense.id,
-      trip_id: tripId,
-      user_id: userId,
-      role: 'splitter' as const,
-      amount_thb: form.split_type === 'equal'
-        ? splitAmount
-        : parseFloat(customSplits[userId] || '0'),
-    }))
-
-    await supabase.from('expense_participants').insert([...payerEntries, ...splitterEntries])
+      await supabase.from('expense_participants').insert([...payerEntries, ...splitterEntries])
+    }
 
     setLoading(false)
     onAdded()
@@ -312,6 +312,30 @@ export default function AddExpenseModal({ tripId, trip, members, currentUserId, 
               })}
             </div>
           </div>
+
+          {/* Cash toggle */}
+          <button
+            onClick={() => setIsCash(v => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all"
+            style={{
+              background: isCash ? 'rgba(16,185,129,0.12)' : 'var(--s1)',
+              border: `1px solid ${isCash ? 'rgba(16,185,129,0.35)' : 'var(--b0)'}`,
+            }}
+          >
+            <div className="text-left">
+              <p className="text-sm font-semibold" style={{ color: isCash ? '#34d399' : 'var(--t1)' }}>
+                💵 จ่ายเงินสดแล้ว (บันทึกไว้เท่านั้น)
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--t3)' }}>
+                {isCash ? 'ไม่นำยอดนี้ไปคิดใน Settle Up' : 'นำยอดนี้ไปคิดใน Settle Up'}
+              </p>
+            </div>
+            <div className="w-11 h-6 rounded-full transition-all flex items-center px-0.5"
+              style={{ background: isCash ? '#10b981' : 'var(--s2)' }}>
+              <div className="w-5 h-5 rounded-full bg-white shadow transition-all"
+                style={{ transform: isCash ? 'translateX(20px)' : 'translateX(0)' }} />
+            </div>
+          </button>
 
           <button
             onClick={handleAdd}

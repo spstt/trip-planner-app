@@ -150,6 +150,7 @@ export interface Expense {
   exchange_rate: number
   amount_thb: number
   split_type: SplitType
+  is_cash: boolean
   notes: string | null
   paid_at: string
   created_by: string

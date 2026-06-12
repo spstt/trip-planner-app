@@ -37,9 +37,17 @@ export default function ExpenseItem({ expense, trip, participants, currentUserId
           <div className="flex items-center gap-3">
             <span className="text-2xl">{CATEGORY_ICONS[expense.category]}</span>
             <div>
-              <h4 className="font-medium text-sm" style={{ color: 'var(--t1)' }}>{expense.title}</h4>
+              <div className="flex items-center gap-1.5">
+                <h4 className="font-medium text-sm" style={{ color: 'var(--t1)' }}>{expense.title}</h4>
+                {expense.is_cash && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>
+                    เงินสด
+                  </span>
+                )}
+              </div>
               <p className="text-xs" style={{ color: 'var(--t3)' }}>
-                จ่ายโดย {payerNames} · {format(parseISO(expense.paid_at), 'd MMM', { locale: th })}
+                จ่ายโดย {expense.is_cash ? 'เงินสด' : payerNames} · {format(parseISO(expense.paid_at), 'd MMM', { locale: th })}
               </p>
             </div>
           </div>

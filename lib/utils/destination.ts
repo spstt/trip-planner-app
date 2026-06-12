@@ -62,31 +62,40 @@ export async function fetchDestinationInfo(destination: string): Promise<Destina
     'มุมไบ': 'Mumbai', 'นิวเดลี': 'New_Delhi',
   }
 
+  const isThai = /[฀-๿]/.test(city)
   const mapped = THAI_MAP[city]
-  const candidates = [
-    mapped,
-    city,
-    city.replace(/\s+/g, '_'),
-  ].filter(Boolean) as string[]
 
-  for (const name of candidates) {
+  // Build search list: [lang, name]
+  const candidates: Array<[string, string]> = []
+
+  if (mapped) {
+    candidates.push(['en', mapped])
+  }
+  if (isThai) {
+    // Try Thai Wikipedia first for Thai city names
+    candidates.push(['th', city])
+    candidates.push(['th', city.replace(/\s+/g, '_')])
+  }
+  // Always try English as fallback
+  candidates.push(['en', city])
+  candidates.push(['en', city.replace(/\s+/g, '_')])
+
+  for (const [lang, name] of candidates) {
     try {
       const res = await fetch(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`,
-        { next: { revalidate: 86400 } } // cache 24h
+        `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`,
+        { next: { revalidate: 86400 } }
       )
       if (!res.ok) continue
       const data = await res.json()
-
-      // Skip disambiguation pages
       if (data.type === 'disambiguation') continue
 
       return {
         title: data.title,
         extract: data.extract ? data.extract.split('. ').slice(0, 2).join('. ') + '.' : '',
-        imageUrl:    data.originalimage?.source ?? null,
-        imageThumb:  data.thumbnail?.source ?? null,
-        wikiUrl:     data.content_urls?.desktop?.page ?? null,
+        imageUrl:   data.originalimage?.source ?? null,
+        imageThumb: data.thumbnail?.source ?? null,
+        wikiUrl:    data.content_urls?.desktop?.page ?? null,
       }
     } catch {
       continue
