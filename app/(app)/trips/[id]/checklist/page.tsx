@@ -68,7 +68,7 @@ export default function ChecklistPage() {
       is_shared: tab === 'shared',
       owner_id: tab === 'personal' ? currentUserId : null,
       created_by: currentUserId,
-      sort_order: Date.now(),
+      sort_order: Math.floor(Date.now() / 1000),
     }).select().single()
     if (data) setItems(prev => [...prev, data as any])
     setNewItem('')
