@@ -58,9 +58,13 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
     // Geocode destination for weather + map
     const coords = await geocode(form.destination.trim())
 
-    const { data: trip, error } = await supabase
+    // Generate UUID client-side so we can insert trip_members before SELECT
+    const tripId = crypto.randomUUID()
+
+    const { error: insertError } = await supabase
       .from('trips')
       .insert({
+        id: tripId,
         name: form.name.trim(),
         destination: form.destination.trim(),
         destination_lat: coords?.lat ?? null,
@@ -70,22 +74,28 @@ export default function CreateTripModal({ onClose, onCreated }: Props) {
         is_international: form.is_international,
         created_by: user.id,
       })
-      .select()
-      .single()
 
-    if (error || !trip) {
+    if (insertError) {
       setLoading(false)
-      toast('เกิดข้อผิดพลาด: ' + (error?.message ?? 'ไม่ทราบสาเหตุ'), 'error')
-      console.error('Trip creation error:', error)
+      toast('เกิดข้อผิดพลาด: ' + insertError.message, 'error')
+      console.error('Trip creation error:', insertError)
       return
     }
 
-    // Add creator as host
+    // Add creator as host BEFORE selecting trip (SELECT policy requires trip_members row)
     await supabase.from('trip_members').insert({
-      trip_id: trip.id,
+      trip_id: tripId,
       user_id: user.id,
       role: 'host',
     })
+
+    // Now SELECT is allowed (is_trip_member = true)
+    const { data: trip } = await supabase.from('trips').select('*').eq('id', tripId).single()
+    if (!trip) {
+      setLoading(false)
+      toast('สร้างทริปสำเร็จแต่โหลดข้อมูลไม่ได้ กรุณารีเฟรช', 'error')
+      return
+    }
 
     // Auto-create itinerary days
     const start = new Date(form.start_date)
