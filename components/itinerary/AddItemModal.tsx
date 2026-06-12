@@ -2,8 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { X, Search, MapPin, Loader2 } from 'lucide-react'
-import type { ItineraryDay, ItineraryItem } from '@/types'
-import { useTripStore } from '@/lib/stores/trip-store'
+import type { ItineraryDay } from '@/types'
 import { toast } from '@/components/ui/Toast'
 
 interface Props {
@@ -11,6 +10,7 @@ interface Props {
   tripId: string
   currentUserId: string
   onClose: () => void
+  onAdded?: () => void
 }
 
 interface NominatimResult {
@@ -20,9 +20,8 @@ interface NominatimResult {
   lon: string
 }
 
-export default function AddItemModal({ day, tripId, currentUserId, onClose }: Props) {
+export default function AddItemModal({ day, tripId, currentUserId, onClose, onAdded }: Props) {
   const supabase = createClient()
-  const { addItem } = useTripStore()
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<NominatimResult[]>([])
@@ -90,29 +89,15 @@ export default function AddItemModal({ day, tripId, currentUserId, onClose }: Pr
       is_backup: false,
     }
 
-    // Optimistic
-    const tempId = `temp-${Date.now()}`
-    addItem({ ...payload, id: tempId, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ItineraryItem)
-    onClose()
+    const { error } = await supabase.from('itinerary_items').insert(payload)
 
-    const { data } = await supabase
-      .from('itinerary_items')
-      .insert(payload)
-      .select()
-      .single()
-
-    if (data) {
-      const { removeItem, addItem: storeAdd } = useTripStore.getState()
-      removeItem(tempId)
-      storeAdd(data as ItineraryItem)
-      toast('เพิ่มสถานที่แล้ว 📍')
-    } else {
-      // rollback optimistic
-      const { removeItem } = useTripStore.getState()
-      removeItem(tempId)
-      toast('เพิ่มไม่สำเร็จ กรุณาลองใหม่', 'error')
-    }
     setLoading(false)
+    if (error) {
+      toast('เพิ่มไม่สำเร็จ: ' + error.message, 'error')
+      return
+    }
+    toast('เพิ่มสถานที่แล้ว 📍')
+    onAdded?.()
   }
 
   return (

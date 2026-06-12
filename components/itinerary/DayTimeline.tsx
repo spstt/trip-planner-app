@@ -14,9 +14,10 @@ interface Props {
   tripId: string
   currentUserId: string | null
   trip: Trip | null
+  onItemAdded?: () => void
 }
 
-export default function DayTimeline({ day, tripId, currentUserId, trip }: Props) {
+export default function DayTimeline({ day, tripId, currentUserId, trip, onItemAdded }: Props) {
   const supabase = createClient()
   const { removeItem } = useTripStore()
   const [openComments, setOpenComments] = useState<string | null>(null)
@@ -156,6 +157,7 @@ export default function DayTimeline({ day, tripId, currentUserId, trip }: Props)
           tripId={tripId}
           currentUserId={currentUserId!}
           onClose={() => setShowAdd(false)}
+          onAdded={() => { setShowAdd(false); onItemAdded?.() }}
         />
       )}
     </div>

@@ -133,6 +133,7 @@ export default function ItineraryPage() {
                 tripId={tripId}
                 currentUserId={currentUserId}
                 trip={trip}
+                onItemAdded={loadData}
               />
             ) : (
               <div className="text-center py-16 text-slate-500">ไม่พบข้อมูลวันนี้</div>

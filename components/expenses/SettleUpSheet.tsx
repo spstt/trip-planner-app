@@ -3,7 +3,8 @@ import { useState } from 'react'
 import type { DebtEntry, TripMember, Profile } from '@/types'
 import { formatCurrency } from '@/lib/utils/debt'
 import Image from 'next/image'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, QrCode } from 'lucide-react'
+import PromptPayQR from './PromptPayQR'
 
 interface Props {
   debts: DebtEntry[]
@@ -13,6 +14,7 @@ interface Props {
 
 export default function SettleUpSheet({ debts, members, currentUserId }: Props) {
   const [copied, setCopied] = useState<string | null>(null)
+  const [qrDebt, setQrDebt] = useState<DebtEntry | null>(null)
 
   function getProfile(userId: string) {
     return members.find(m => m.user_id === userId)?.profile
@@ -72,19 +74,37 @@ export default function SettleUpSheet({ debts, members, currentUserId }: Props) 
               <Avatar profile={toProfile} />
             </div>
 
-            {/* One-click copy payment info */}
+            {/* Action buttons */}
             {isMe && (
-              <button
-                onClick={() => copyPaymentInfo(debt.to)}
-                className="mt-3 w-full flex items-center justify-center gap-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 py-2.5 rounded-xl text-sm active:scale-95 transition-transform"
-              >
-                {copied === debt.to ? <Check size={14} /> : <Copy size={14} />}
-                {copied === debt.to ? 'คัดลอกแล้ว!' : `คัดลอกบัญชี ${toProfile?.display_name}`}
-              </button>
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => copyPaymentInfo(debt.to)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 py-2.5 rounded-xl text-sm active:scale-95 transition-transform"
+                >
+                  {copied === debt.to ? <Check size={14} /> : <Copy size={14} />}
+                  {copied === debt.to ? 'คัดลอกแล้ว!' : 'คัดลอกบัญชี'}
+                </button>
+                {toProfile?.promptpay && (
+                  <button
+                    onClick={() => setQrDebt(debt)}
+                    className="flex items-center justify-center gap-1.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 px-4 py-2.5 rounded-xl text-sm active:scale-95 transition-transform"
+                  >
+                    <QrCode size={14} />
+                    QR
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )
       })}
+      {qrDebt && (
+        <PromptPayQR
+          toProfile={getProfile(qrDebt.to)!}
+          amount={qrDebt.amount}
+          onClose={() => setQrDebt(null)}
+        />
+      )}
     </div>
   )
 }

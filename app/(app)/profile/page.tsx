@@ -4,11 +4,12 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
-  User, CreditCard, Phone, LogOut, Trash2,
-  Save, Loader2, ChevronRight, Shield
+  User, CreditCard, LogOut, Trash2,
+  Save, Loader2, ChevronRight, Shield, Camera
 } from 'lucide-react'
 import type { Profile } from '@/types'
 import { toast } from '@/components/ui/Toast'
+import { useRef } from 'react'
 
 const CURRENCIES = ['THB', 'USD', 'JPY', 'KRW', 'EUR', 'SGD', 'MYR', 'HKD']
 
@@ -19,6 +20,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     display_name: '',
     default_currency: 'THB',
@@ -48,6 +51,38 @@ export default function ProfilePage() {
       })
     }
     setLoading(false)
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !profile) return
+
+    // Validate: image only, max 2MB
+    if (!file.type.startsWith('image/')) { toast('รองรับเฉพาะไฟล์รูปภาพ', 'error'); return }
+    if (file.size > 2 * 1024 * 1024) { toast('ไฟล์ต้องไม่เกิน 2MB', 'error'); return }
+
+    setUploadingAvatar(true)
+    const ext = file.name.split('.').pop()
+    const path = `${profile.id}/avatar.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type })
+
+    if (uploadError) {
+      toast('อัปโหลดไม่สำเร็จ: ' + uploadError.message, 'error')
+      setUploadingAvatar(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+    // Add cache-busting so Next.js Image reloads
+    const avatarUrl = `${publicUrl}?t=${Date.now()}`
+
+    await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', profile.id)
+    setProfile(p => p ? { ...p, avatar_url: avatarUrl } : p)
+    setUploadingAvatar(false)
+    toast('เปลี่ยนรูปโปรไฟล์แล้ว ✅')
   }
 
   async function saveProfile() {
@@ -110,14 +145,33 @@ export default function ProfilePage() {
     <div className="px-4 pt-6 pb-6 space-y-6">
       {/* Avatar + name header */}
       <div className="flex flex-col items-center gap-3">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 overflow-hidden border-4 border-slate-800 shadow-xl">
-          {profile?.avatar_url ? (
-            <Image src={profile.avatar_url} alt="" width={80} height={80} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white">
-              {form.display_name?.[0]?.toUpperCase() ?? '?'}
-            </div>
-          )}
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 overflow-hidden border-4 border-slate-800 shadow-xl">
+            {profile?.avatar_url ? (
+              <Image src={profile.avatar_url} alt="" width={80} height={80} className="w-full h-full object-cover" unoptimized />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white">
+                {form.display_name?.[0]?.toUpperCase() ?? '?'}
+              </div>
+            )}
+          </div>
+          {/* Upload button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-indigo-600 border-2 border-slate-900 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            {uploadingAvatar
+              ? <Loader2 size={13} className="text-white animate-spin" />
+              : <Camera size={13} className="text-white" />}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
         </div>
         <div className="text-center">
           <h1 className="text-xl font-bold text-white">{form.display_name || 'ไม่มีชื่อ'}</h1>
