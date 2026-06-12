@@ -4,7 +4,6 @@ import { useParams, usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Map, Plane, Receipt, CheckSquare, Home } from 'lucide-react'
-import { cn } from '@/lib/utils/cn'
 import type { Trip } from '@/types'
 
 const TABS = [
@@ -31,51 +30,72 @@ export default function TripLayout({ children }: { children: React.ReactNode }) 
       .then(({ data }) => setTrip(data))
   }, [id])
 
-  // Determine active tab from pathname
-  // e.g. /trips/[id]/itinerary → 'itinerary'
   const segments = pathname.split('/')
   const lastSegment = segments[segments.length - 1]
   const activeTab = TABS.some(t => t.key === lastSegment) ? lastSegment : ''
 
   return (
-    <div className="flex flex-col h-dvh" style={{ background: 'var(--surface)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--bg)' }}>
 
-      {/* Top header */}
+      {/* ── Top header — theme-aware ── */}
       <div
-        className="shrink-0 flex items-center gap-3 px-4"
         style={{
+          flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 12,
+          paddingLeft: 16, paddingRight: 16,
           paddingTop: 'calc(var(--safe-top) + 12px)',
-          paddingBottom: '10px',
-          background: 'rgba(13,17,23,0.85)',
+          paddingBottom: 10,
+          background: 'var(--s0)',
           backdropFilter: 'blur(40px)',
           WebkitBackdropFilter: 'blur(40px)',
-          borderBottom: '1px solid var(--border)',
+          borderBottom: '1px solid var(--b0)',
+          boxShadow: '0 1px 0 var(--b0)',
         }}
       >
+        {/* Back button */}
         <button
           onClick={() => router.push('/dashboard')}
-          className="pressable w-9 h-9 rounded-xl glass flex items-center justify-center shrink-0"
+          className="pressable"
+          style={{
+            width: 36, height: 36, borderRadius: 12, flexShrink: 0,
+            background: 'var(--s2)', border: '1px solid var(--b0)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}
         >
-          <ArrowLeft size={17} className="text-white" />
+          <ArrowLeft size={17} style={{ color: 'var(--t1)' }} />
         </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[15px] font-bold text-white truncate leading-tight">
+
+        {/* Trip name + destination */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 style={{
+            fontSize: 15, fontWeight: 700,
+            color: 'var(--t1)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            lineHeight: 1.3, margin: 0,
+          }}>
             {trip?.name ?? '...'}
           </h1>
           {trip?.destination && (
-            <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>{trip.destination}</p>
+            <p style={{
+              fontSize: 11, color: 'var(--t3)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              margin: '1px 0 0',
+            }}>
+              {trip.destination}
+            </p>
           )}
         </div>
       </div>
 
-      {/* Tab bar */}
+      {/* ── Tab bar — theme-aware ── */}
       <div
-        className="shrink-0 flex px-2"
         style={{
-          background: 'rgba(13,17,23,0.7)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid var(--border)',
+          flexShrink: 0,
+          display: 'flex',
+          paddingLeft: 8, paddingRight: 8,
+          background: 'var(--s0)',
+          borderBottom: '1px solid var(--b0)',
         }}
       >
         {TABS.map(({ key, icon: Icon, label }) => {
@@ -85,18 +105,37 @@ export default function TripLayout({ children }: { children: React.ReactNode }) 
             <Link
               key={key}
               href={href}
-              className={cn(
-                'flex-1 flex flex-col items-center gap-1 py-2.5 px-1 relative transition-all duration-200',
-                isActive ? 'text-indigo-400' : 'text-slate-600'
-              )}
+              style={{
+                flex: 1,
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 3, paddingTop: 10, paddingBottom: 10, paddingLeft: 4, paddingRight: 4,
+                position: 'relative',
+                textDecoration: 'none',
+                color: isActive ? 'var(--indigo)' : 'var(--t2)',
+                transition: 'color 0.18s ease',
+              }}
             >
-              <Icon size={17} strokeWidth={isActive ? 2.5 : 1.7} />
-              <span className="text-[10px] font-semibold leading-none">{label}</span>
+              <Icon
+                size={17}
+                strokeWidth={isActive ? 2.5 : 1.7}
+                style={{ color: isActive ? 'var(--indigo)' : 'var(--t2)', transition: 'color 0.18s ease' }}
+              />
+              <span style={{
+                fontSize: 10, fontWeight: isActive ? 700 : 500,
+                lineHeight: 1,
+                color: isActive ? 'var(--indigo)' : 'var(--t2)',
+                transition: 'color 0.18s ease',
+              }}>
+                {label}
+              </span>
+              {/* Active indicator pill */}
               {isActive && (
-                <span
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2.5px] rounded-full"
-                  style={{ width: '28px', background: 'linear-gradient(90deg,#6366f1,#a855f7)' }}
-                />
+                <span style={{
+                  position: 'absolute', bottom: 0, left: '50%',
+                  transform: 'translateX(-50%)',
+                  height: 2.5, width: 28, borderRadius: 99,
+                  background: 'linear-gradient(90deg, var(--indigo), var(--violet))',
+                }} />
               )}
             </Link>
           )
@@ -104,7 +143,7 @@ export default function TripLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Page content */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar">
+      <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
         {children}
       </div>
     </div>

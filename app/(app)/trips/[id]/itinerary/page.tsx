@@ -84,21 +84,22 @@ export default function ItineraryPage() {
     <div className="flex flex-col h-full">
       {/* View toggle */}
       <div className="px-4 pt-3 pb-2 flex items-center justify-end shrink-0">
-        <div className="flex bg-slate-900 rounded-xl p-1">
-          <button
-            onClick={() => setView('timeline')}
-            className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-              view === 'timeline' ? 'bg-indigo-600 text-white' : 'text-slate-500')}
-          >
-            <List size={13} /> รายการ
-          </button>
-          <button
-            onClick={() => setView('map')}
-            className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-              view === 'map' ? 'bg-indigo-600 text-white' : 'text-slate-500')}
-          >
-            <Map size={13} /> แผนที่
-          </button>
+        <div style={{ display: 'flex', background: 'var(--s1)', borderRadius: 14, padding: 3, border: '1px solid var(--b0)' }}>
+          {(['timeline', 'map'] as const).map(v => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '6px 12px', borderRadius: 11, border: 'none', cursor: 'pointer',
+                fontSize: 12, fontWeight: 600, transition: 'all 0.18s ease',
+                background: view === v ? 'linear-gradient(135deg, var(--indigo), var(--violet))' : 'transparent',
+                color: view === v ? 'white' : 'var(--t2)',
+              }}
+            >
+              {v === 'timeline' ? <><List size={13} /> รายการ</> : <><Map size={13} /> แผนที่</>}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -109,13 +110,19 @@ export default function ItineraryPage() {
             <button
               key={d.id}
               onClick={() => setSelectedDay(i)}
-              className={cn(
-                'flex-none px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap',
-                selectedDay === i ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400'
-              )}
+              style={{
+                flexShrink: 0, padding: '7px 14px', borderRadius: 14, border: 'none',
+                cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                whiteSpace: 'nowrap', transition: 'all 0.18s ease',
+                background: selectedDay === i
+                  ? 'linear-gradient(135deg, var(--indigo), var(--violet))'
+                  : 'var(--s2)',
+                color: selectedDay === i ? 'white' : 'var(--t2)',
+                boxShadow: selectedDay === i ? '0 2px 10px var(--indigo-glow)' : 'none',
+              }}
             >
-              <span className="font-bold">Day {d.day_number}</span>
-              <span className="ml-1 text-[10px] opacity-70">
+              <span style={{ fontWeight: 700 }}>Day {d.day_number}</span>
+              <span style={{ marginLeft: 4, fontSize: 10, opacity: 0.75 }}>
                 {format(parseISO(d.date), 'd MMM', { locale: th })}
               </span>
             </button>

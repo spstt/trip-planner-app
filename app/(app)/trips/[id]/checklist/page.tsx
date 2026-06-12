@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Users, Lock, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ChecklistItem, Profile } from '@/types'
-import { cn } from '@/lib/utils/cn'
 import Image from 'next/image'
 import confetti from 'canvas-confetti'
 
@@ -18,31 +17,31 @@ function PawIcon({ checked }: { checked: boolean }) {
       {/* Main paw pad */}
       <ellipse cx="13" cy="15.5" rx="6.2" ry="5.5"
         fill={checked ? '#f9a8d4' : 'none'}
-        stroke={checked ? '#f472b6' : '#64748b'}
+        stroke={checked ? '#f472b6' : 'var(--t2)'}
         strokeWidth="1.8"
       />
       {/* Top-left toe */}
       <ellipse cx="7.2" cy="9.5" rx="2.3" ry="2.8"
         fill={checked ? '#fbcfe8' : 'none'}
-        stroke={checked ? '#f472b6' : '#64748b'}
+        stroke={checked ? '#f472b6' : 'var(--t2)'}
         strokeWidth="1.6"
       />
       {/* Top-center toe */}
       <ellipse cx="11.6" cy="7.5" rx="2.3" ry="2.8"
         fill={checked ? '#fbcfe8' : 'none'}
-        stroke={checked ? '#f472b6' : '#64748b'}
+        stroke={checked ? '#f472b6' : 'var(--t2)'}
         strokeWidth="1.6"
       />
       {/* Top-right-center toe */}
       <ellipse cx="16" cy="7.8" rx="2.3" ry="2.8"
         fill={checked ? '#fbcfe8' : 'none'}
-        stroke={checked ? '#f472b6' : '#64748b'}
+        stroke={checked ? '#f472b6' : 'var(--t2)'}
         strokeWidth="1.6"
       />
       {/* Top-right toe */}
       <ellipse cx="19.8" cy="9.8" rx="2.2" ry="2.6"
         fill={checked ? '#fbcfe8' : 'none'}
-        stroke={checked ? '#f472b6' : '#64748b'}
+        stroke={checked ? '#f472b6' : 'var(--t2)'}
         strokeWidth="1.6"
       />
       {/* Inner glow dot when checked */}
@@ -189,42 +188,44 @@ export default function ChecklistPage() {
   return (
     <div className="px-4 pt-4 space-y-4 pb-6">
       <div>
-        <h2 className="text-xl font-bold text-white">รายการของต้องเตรียม</h2>
-        <p className="text-slate-500 text-sm mt-0.5">
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--t1)', margin: 0, letterSpacing: '-0.02em' }}>รายการของต้องเตรียม</h2>
+        <p style={{ fontSize: 13, color: 'var(--t3)', marginTop: 2 }}>
           {checkedCount}/{items.length} รายการ
         </p>
       </div>
 
       {/* Progress bar */}
       {items.length > 0 && (
-        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div style={{ height: 8, background: 'var(--s2)', borderRadius: 99, overflow: 'hidden' }}>
           <div
-            className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500"
-            style={{ width: `${(checkedCount / items.length) * 100}%` }}
+            style={{
+              height: '100%',
+              background: 'linear-gradient(90deg, var(--indigo), var(--violet))',
+              transition: 'width 0.5s ease',
+              width: `${(checkedCount / items.length) * 100}%`,
+            }}
           />
         </div>
       )}
 
       {/* Tab */}
-      <div className="flex bg-slate-900 rounded-2xl p-1">
-        <button
-          onClick={() => setTab('shared')}
-          className={cn(
-            'flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all',
-            tab === 'shared' ? 'bg-indigo-600 text-white' : 'text-slate-500'
-          )}
-        >
-          <Users size={14} /> ของกลุ่ม
-        </button>
-        <button
-          onClick={() => setTab('personal')}
-          className={cn(
-            'flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-all',
-            tab === 'personal' ? 'bg-indigo-600 text-white' : 'text-slate-500'
-          )}
-        >
-          <Lock size={14} /> ของฉัน (ส่วนตัว)
-        </button>
+      <div style={{ display: 'flex', background: 'var(--s1)', borderRadius: 20, padding: 4, border: '1px solid var(--b0)' }}>
+        {(['shared', 'personal'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              flex: 1, padding: '10px 0', borderRadius: 16, border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, transition: 'all 0.18s ease',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              background: tab === t ? 'linear-gradient(135deg, var(--indigo), var(--violet))' : 'transparent',
+              color: tab === t ? 'white' : 'var(--t2)',
+              boxShadow: tab === t ? '0 2px 10px var(--indigo-glow)' : 'none',
+            }}
+          >
+            {t === 'shared' ? <><Users size={14} /> ของกลุ่ม</> : <><Lock size={14} /> ของฉัน (ส่วนตัว)</>}
+          </button>
+        ))}
       </div>
 
       {/* Add item */}
@@ -234,14 +235,24 @@ export default function ChecklistPage() {
           onChange={e => setNewItem(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && addItem()}
           placeholder={tab === 'shared' ? 'เพิ่มของที่ต้องเตรียมกลุ่ม...' : 'เพิ่มของส่วนตัวของฉัน...'}
-          className="flex-1 bg-slate-900 text-white rounded-xl px-4 py-3 text-sm placeholder-slate-600 border border-slate-800 focus:border-indigo-500 focus:outline-none"
+          style={{
+            flex: 1, background: 'var(--s1)', color: 'var(--t1)',
+            borderRadius: 14, padding: '12px 16px', fontSize: 14,
+            border: '1px solid var(--b1)', outline: 'none',
+          }}
         />
         <button
           onClick={addItem}
           disabled={!newItem.trim()}
-          className="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center active:scale-90 transition-transform disabled:opacity-40"
+          style={{
+            width: 44, height: 44, flexShrink: 0,
+            background: 'linear-gradient(135deg, var(--indigo), var(--violet))',
+            borderRadius: 14, border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            opacity: newItem.trim() ? 1 : 0.4, transition: 'opacity 0.15s',
+          }}
         >
-          <Plus size={18} className="text-white" />
+          <Plus size={18} style={{ color: 'white' }} />
         </button>
       </div>
 
@@ -287,7 +298,7 @@ export default function ChecklistPage() {
       ) : items.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-4xl mb-2">{tab === 'shared' ? '🧳' : '🔒'}</div>
-          <p className="text-slate-500 text-sm">ยังไม่มีรายการ</p>
+          <p style={{ fontSize: 14, color: 'var(--t3)' }}>ยังไม่มีรายการ</p>
         </div>
       ) : (
         <div className="space-y-2 pb-4">
@@ -296,10 +307,8 @@ export default function ChecklistPage() {
             items.filter(i => i.is_checked === checked).map(item => (
               <div
                 key={item.id}
-                className={cn(
-                  'glass rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-all border border-white/5',
-                  item.is_checked && 'opacity-60'
-                )}
+                className="glass rounded-2xl flex items-center gap-3 transition-all"
+                style={{ padding: '14px 16px', opacity: item.is_checked ? 0.6 : 1, border: '1px solid var(--b0)' }}
               >
                 <button
                   onClick={() => toggleItem(item)}
@@ -310,10 +319,11 @@ export default function ChecklistPage() {
                 </button>
 
                 <div className="flex-1 min-w-0">
-                  <p className={cn(
-                    'text-sm font-medium text-white',
-                    item.is_checked && 'line-through text-slate-500'
-                  )}>
+                  <p style={{
+                    fontSize: 14, fontWeight: 500, margin: 0,
+                    color: item.is_checked ? 'var(--t3)' : 'var(--t1)',
+                    textDecoration: item.is_checked ? 'line-through' : 'none',
+                  }}>
                     {item.title}
                   </p>
 
@@ -338,7 +348,7 @@ export default function ChecklistPage() {
 
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="text-slate-700 active:text-red-400 transition-colors shrink-0 text-xs"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', fontSize: 12, flexShrink: 0, padding: 4 }}
                 >
                   ✕
                 </button>

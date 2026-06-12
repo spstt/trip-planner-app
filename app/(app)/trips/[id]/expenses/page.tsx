@@ -105,21 +105,27 @@ export default function ExpensesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white">บัญชีกลุ่ม</h2>
-          <p className="text-slate-500 text-sm mt-0.5">รวม {formatCurrency(totalTHB)}</p>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--t1)', margin: 0, letterSpacing: '-0.02em' }}>บัญชีกลุ่ม</h2>
+          <p style={{ fontSize: 13, color: 'var(--t3)', marginTop: 2 }}>รวม {formatCurrency(totalTHB)}</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 active:scale-90"
+          className="pressable"
+          style={{
+            width: 48, height: 48, borderRadius: 16, border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(135deg, var(--indigo), var(--violet))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px var(--indigo-glow)',
+          }}
         >
-          <Plus size={22} className="text-white" />
+          <Plus size={22} style={{ color: 'white' }} />
         </button>
       </div>
 
       {/* My balance card */}
       <div className="glass rounded-2xl p-4 space-y-1">
-        <p className="text-xs text-slate-500">ส่วนแบ่งของฉัน</p>
-        <p className="text-2xl font-bold text-white">{formatCurrency(myShare)}</p>
+        <p className="text-xs" style={{ color: 'var(--t3)' }}>ส่วนแบ่งของฉัน</p>
+        <p className="text-2xl font-bold" style={{ color: 'var(--t1)' }}>{formatCurrency(myShare)}</p>
         {myDebts.length > 0 && (
           <div className="mt-2 space-y-1">
             {myDebts.slice(0, 2).map((d, i) => {
@@ -140,11 +146,11 @@ export default function ExpensesPage() {
       {isHost && trip?.is_international && (
         <div className="glass rounded-2xl px-4 py-3 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-300">
+            <p className="text-sm font-medium" style={{ color: 'var(--t1)' }}>
               {trip.rates_locked_at ? '🔒 ล็อคอัตราแลกเปลี่ยนแล้ว' : 'อัตราแลกเปลี่ยน (ใช้เรทสด)'}
             </p>
             {trip.rates_locked_at && (
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs mt-0.5" style={{ color: 'var(--t3)' }}>
                 ล็อคเมื่อ {new Date(trip.rates_locked_at).toLocaleDateString('th-TH')}
               </p>
             )}
@@ -155,8 +161,9 @@ export default function ExpensesPage() {
               'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-90',
               trip.rates_locked_at
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'bg-slate-800 text-slate-400 border border-slate-700'
+                : 'border'
             )}
+            style={!trip.rates_locked_at ? { background: 'var(--s2)', color: 'var(--t2)', borderColor: 'var(--b1)' } : undefined}
           >
             {trip.rates_locked_at ? <Lock size={12} /> : <Unlock size={12} />}
             {trip.rates_locked_at ? 'ปลดล็อค' : 'ล็อคเรท'}
@@ -165,15 +172,18 @@ export default function ExpensesPage() {
       )}
 
       {/* Tab */}
-      <div className="flex bg-slate-900 rounded-2xl p-1">
+      <div style={{ display: 'flex', background: 'var(--s1)', borderRadius: 20, padding: 4, border: '1px solid var(--b0)' }}>
         {(['list', 'settle'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={cn(
-              'flex-1 py-2.5 rounded-xl text-sm font-medium transition-all',
-              tab === t ? 'bg-indigo-600 text-white' : 'text-slate-500'
-            )}
+            style={{
+              flex: 1, padding: '10px 0', borderRadius: 16, border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, transition: 'all 0.18s ease',
+              background: tab === t ? 'linear-gradient(135deg, var(--indigo), var(--violet))' : 'transparent',
+              color: tab === t ? 'white' : 'var(--t2)',
+              boxShadow: tab === t ? '0 2px 10px var(--indigo-glow)' : 'none',
+            }}
           >
             {t === 'list' ? '📋 รายการ' : '💸 Settle Up'}
           </button>
@@ -190,7 +200,7 @@ export default function ExpensesPage() {
           {expenses.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-2">💰</div>
-              <p className="text-slate-500 text-sm">ยังไม่มีรายการค่าใช้จ่าย</p>
+              <p style={{ fontSize: 14, color: 'var(--t3)' }}>ยังไม่มีรายการค่าใช้จ่าย</p>
             </div>
           ) : (
             trip && expenses.map(exp => (

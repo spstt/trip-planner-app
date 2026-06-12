@@ -199,41 +199,54 @@ export default function DashboardPage() {
               </div>
             ))}
 
-            {/* Empty Create Card — ข้อ 3 */}
+            {/* Empty Create Card */}
             <div className="fade-up" style={{ animationDelay: `${display.length * 50 + 40}ms` }}>
               <button
                 onClick={() => setShowCreate(true)}
                 className="pressable"
                 style={{
-                  width: '100%', borderRadius: 28, padding: '28px 20px',
-                  background: 'transparent',
-                  border: '2px dashed var(--b1)',
+                  width: '100%', borderRadius: 32, padding: '26px 20px',
+                  background: 'var(--s0)',
+                  border: '2px dashed transparent',
+                  backgroundClip: 'padding-box',
+                  outline: '2px dashed rgba(139,92,246,0.25)',
+                  outlineOffset: -2,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: 10, cursor: 'pointer',
-                  transition: 'border-color 0.2s ease, background 0.2s ease',
-                  backgroundImage: `radial-gradient(circle at 50% 0%, var(--indigo-glow) 0%, transparent 65%)`,
+                  gap: 12, cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  backgroundImage: `radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.07) 0%, transparent 70%)`,
+                  boxShadow: '0 4px 24px rgba(139,92,246,0.06)',
                 }}
               >
-                <div style={{
-                  width: 52, height: 52, borderRadius: 18,
-                  background: 'var(--indigo-glow)',
-                  border: '1px solid rgba(99,102,241,0.22)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 24,
-                  boxShadow: '0 4px 20px rgba(99,102,241,0.14)',
-                }}>
-                  🎒
+                {/* Icon with layered pastel glow */}
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* Outer soft glow ring */}
+                  <div style={{
+                    position: 'absolute', width: 72, height: 72, borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(236,72,153,0.12) 0%, rgba(139,92,246,0.08) 60%, transparent 80%)',
+                  }}/>
+                  <div style={{
+                    width: 56, height: 56, borderRadius: 20,
+                    background: 'linear-gradient(135deg, rgba(236,72,153,0.14), rgba(139,92,246,0.14))',
+                    border: '1.5px solid rgba(236,72,153,0.22)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 26,
+                    boxShadow: '0 6px 24px rgba(236,72,153,0.22), 0 2px 8px rgba(139,92,246,0.18), 0 1px 0 rgba(255,255,255,0.5) inset',
+                    position: 'relative', zIndex: 1,
+                  }}>
+                    🎒
+                  </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <p style={{
-                    fontSize: 15, fontWeight: 700, color: 'var(--t2)',
-                    margin: '0 0 3px',
+                    fontSize: 15, fontWeight: 700, color: 'var(--t1)',
+                    margin: '0 0 4px',
                     letterSpacing: '-0.01em',
                     fontFamily: '"Noto Sans Thai Looped", "Noto Sans Thai", "SF Pro Rounded", system-ui, sans-serif',
                   }}>
                     + สร้างทริปใหม่กันเลย!
                   </p>
-                  <p style={{ fontSize: 12, color: 'var(--t3)', margin: 0 }}>
+                  <p style={{ fontSize: 12, color: 'var(--t3)', margin: 0, lineHeight: 1.5 }}>
                     เพิ่มทริปถัดไปของคุณได้เลย ✨
                   </p>
                 </div>

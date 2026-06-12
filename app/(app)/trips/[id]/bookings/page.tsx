@@ -6,14 +6,13 @@ import { Plus, Plane, Hotel, Train, Car, Ticket, Package } from 'lucide-react'
 import type { Booking, BookingAttachment } from '@/types'
 import BookingCard from '@/components/bookings/BookingCard'
 import AddBookingModal from '@/components/bookings/AddBookingModal'
-import { cn } from '@/lib/utils/cn'
 
 const CATEGORIES = [
-  { id: 'all',          label: 'ทั้งหมด', icon: Package },
-  { id: 'flight',       label: 'เที่ยวบิน', icon: Plane },
-  { id: 'hotel',        label: 'โรงแรม', icon: Hotel },
-  { id: 'train',        label: 'รถ/ราง', icon: Train },
-  { id: 'activity',     label: 'บัตร', icon: Ticket },
+  { id: 'all',      label: 'ทั้งหมด', icon: Package },
+  { id: 'flight',   label: 'เที่ยวบิน', icon: Plane },
+  { id: 'hotel',    label: 'โรงแรม', icon: Hotel },
+  { id: 'train',    label: 'รถ/ราง', icon: Train },
+  { id: 'activity', label: 'บัตร', icon: Ticket },
 ]
 
 export default function BookingsPage() {
@@ -41,54 +40,80 @@ export default function BookingsPage() {
   const filtered = filter === 'all' ? bookings : bookings.filter(b => b.category === filter)
 
   return (
-    <div className="px-4 pt-4 space-y-4 pb-6">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: '16px 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h2 className="text-xl font-bold text-white">ตั๋วและการจอง</h2>
-          <p className="text-slate-500 text-sm">{bookings.length} รายการ</p>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--t1)', margin: 0, letterSpacing: '-0.02em' }}>
+            ตั๋วและการจอง
+          </h2>
+          <p style={{ fontSize: 13, color: 'var(--t3)', marginTop: 2 }}>
+            {bookings.length} รายการ
+          </p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 active:scale-90"
+          className="pressable"
+          style={{
+            width: 48, height: 48, borderRadius: 16, border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(135deg, var(--indigo), var(--violet))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px var(--indigo-glow), 0 0 0 1px rgba(255,255,255,0.10) inset',
+          }}
         >
-          <Plus size={22} className="text-white" />
+          <Plus size={22} style={{ color: 'white' }} />
         </button>
       </div>
 
-      {/* Category filter */}
-      <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+      {/* ── Category filter chips ── */}
+      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }} className="hide-scrollbar">
         {CATEGORIES.map(cat => {
           const Icon = cat.icon
+          const isActive = filter === cat.id
           return (
             <button
               key={cat.id}
               onClick={() => setFilter(cat.id)}
-              className={cn(
-                'flex-none flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-medium transition-all',
-                filter === cat.id ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400'
-              )}
+              style={{
+                flexShrink: 0,
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 14px', borderRadius: 20, cursor: 'pointer', border: 'none',
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                transition: 'all 0.18s ease',
+                background: isActive
+                  ? 'linear-gradient(135deg, var(--indigo), var(--violet))'
+                  : 'var(--s2)',
+                color: isActive ? 'white' : 'var(--t2)',
+                boxShadow: isActive ? '0 3px 12px var(--indigo-glow)' : 'none',
+              }}
             >
-              <Icon size={14} />
+              <Icon size={14} style={{ color: isActive ? 'white' : 'var(--t2)' }} />
               {cat.label}
             </button>
           )
         })}
       </div>
 
-      {/* Offline hint */}
-      <div className="glass rounded-xl px-3 py-2.5 flex items-center gap-2">
-        <span className="text-lg">📶</span>
-        <p className="text-xs text-slate-400">
+      {/* ── Offline hint ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '10px 14px', borderRadius: 14,
+        background: 'var(--s1)',
+        border: '1px solid var(--b1)',
+      }}>
+        <span style={{ fontSize: 18, flexShrink: 0 }}>📶</span>
+        <p style={{ fontSize: 12, color: 'var(--t2)', margin: 0, lineHeight: 1.5 }}>
           ตั๋วที่เปิดดูแล้วจะถูกบันทึกไว้ในเครื่อง เปิดดูออฟไลน์ได้เลย
         </p>
       </div>
 
-      {/* Booking list */}
-      <div className="space-y-3 pb-4">
+      {/* ── Booking list ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 8 }}>
         {filtered.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-4xl mb-2">🎫</div>
-            <p className="text-slate-500 text-sm">ยังไม่มีการจองในหมวดนี้</p>
+          <div style={{ textAlign: 'center', padding: '48px 0' }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🎫</div>
+            <p style={{ fontSize: 14, color: 'var(--t3)' }}>ยังไม่มีการจองในหมวดนี้</p>
           </div>
         ) : (
           filtered.map(booking => (
