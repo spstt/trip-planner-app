@@ -45,7 +45,7 @@ export default function ChecklistPage() {
     if (!currentUserId) return
     const query = supabase
       .from('checklist_items')
-      .select('*, checker:profiles!checklist_items_checked_by_fkey(id, display_name, avatar_url)')
+      .select('*, checker:profiles!checked_by(id, display_name, avatar_url)')
       .eq('trip_id', tripId)
       .order('sort_order')
 
