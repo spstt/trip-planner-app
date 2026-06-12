@@ -187,13 +187,15 @@ export default function ExpensesPage() {
               <p className="text-slate-500 text-sm">ยังไม่มีรายการค่าใช้จ่าย</p>
             </div>
           ) : (
-            expenses.map(exp => (
+            trip && expenses.map(exp => (
               <ExpenseItem
                 key={exp.id}
                 expense={exp}
+                trip={trip}
                 participants={participants.filter(p => p.expense_id === exp.id)}
                 currentUserId={currentUserId}
                 members={members}
+                onUpdated={loadExpenses}
               />
             ))
           )}
