@@ -9,6 +9,7 @@ import { format, parseISO } from 'date-fns'
 import { th } from 'date-fns/locale'
 import type { ItineraryDay, ItineraryItem, Trip } from '@/types'
 import DayTimeline from '@/components/itinerary/DayTimeline'
+import DayWeatherOOTD from '@/components/itinerary/DayWeatherOOTD'
 import MapView from '@/components/map/MapView'
 import BackupDrawer from '@/components/itinerary/BackupDrawer'
 import { cacheItinerary } from '@/lib/utils/offline'
@@ -24,6 +25,7 @@ export default function ItineraryPage() {
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [trip, setTrip] = useState<Trip | null>(null)
+  const [isHost, setIsHost] = useState(false)
 
   useEffect(() => { loadData() }, [tripId])
 
@@ -42,16 +44,23 @@ export default function ItineraryPage() {
     const { data: { user } } = await supabase.auth.getUser()
     setCurrentUserId(user?.id ?? null)
 
-    const [{ data: tripData }, { data: daysData }] = await Promise.all([
+    const [{ data: tripData }, { data: daysData }, { data: memberData }] = await Promise.all([
       supabase.from('trips').select('*').eq('id', tripId).single(),
       supabase
         .from('itinerary_days')
         .select(`*, items:itinerary_items(*, creator:profiles!itinerary_items_created_by_fkey(id,display_name,avatar_url))`)
         .eq('trip_id', tripId)
         .order('day_number'),
+      supabase
+        .from('trip_members')
+        .select('role')
+        .eq('trip_id', tripId)
+        .eq('user_id', user?.id ?? '')
+        .maybeSingle(),
     ])
 
     setTrip(tripData)
+    setIsHost((memberData as any)?.role === 'host')
 
     const processed = (daysData ?? []).map(d => ({
       ...d,
@@ -134,14 +143,21 @@ export default function ItineraryPage() {
       <div className="flex-1 overflow-y-auto hide-scrollbar">
         {view === 'timeline' ? (
           <div className="px-4 pb-32">
-            {currentDayData ? (
-              <DayTimeline
-                day={currentDayData}
-                tripId={tripId}
-                currentUserId={currentUserId}
-                trip={trip}
-                onItemAdded={loadData}
-              />
+            {currentDayData && trip ? (
+              <>
+                <DayWeatherOOTD
+                  day={currentDayData}
+                  trip={trip}
+                  isHost={isHost}
+                />
+                <DayTimeline
+                  day={currentDayData}
+                  tripId={tripId}
+                  currentUserId={currentUserId}
+                  trip={trip}
+                  onItemAdded={loadData}
+                />
+              </>
             ) : (
               <div className="text-center py-16 text-slate-500">ไม่พบข้อมูลวันนี้</div>
             )}
