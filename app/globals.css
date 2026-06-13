@@ -227,6 +227,22 @@ body {
 .hide-scrollbar::-webkit-scrollbar { display:none; }
 .timeline-line { position:absolute; left:19px; top:44px; bottom:0; width:2px; background:linear-gradient(to bottom,var(--indigo),transparent); }
 
+/* ── Hover-lift — use on interactive cards ── */
+.hover-lift {
+  transition: transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ── Glass hover ── */
+.glass:hover {
+  background: rgba(255,255,255,0.055);
+  border-color: var(--b1);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
 @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
 /* ── Ticket card (vintage serrated edge) ── */
@@ -277,9 +293,9 @@ body {
   --violet: #8fbc8f;
   --pink:   #e8a598;
   --indigo-glow: rgba(101,163,130,0.15);
-  --t1: #2d3748;
-  --t2: rgba(45,55,72,0.65);
-  --t3: rgba(45,55,72,0.35);
+  --t1: #0f172a;
+  --t2: #64748b;
+  --t3: #94a3b8;
   --surface:   #ffffff;
   --surface-2: #f8f4ee;
   --surface-3: #ede8df;
@@ -344,9 +360,9 @@ body {
   --violet:      #d4733a;
   --pink:        #e86060;
   --indigo-glow: rgba(232,135,74,0.15);
-  --t1:  #3d2b1f;
-  --t2:  rgba(61,43,31,0.62);
-  --t3:  rgba(61,43,31,0.35);
+  --t1:  #1c0f07;
+  --t2:  #78523c;
+  --t3:  #b08060;
   --surface:   #fffdf8;
   --surface-2: #fef9f0;
   --surface-3: #fdecd6;
@@ -408,9 +424,9 @@ body {
   --violet:      #4a7a6a;
   --pink:        #c084a0;
   --indigo-glow: rgba(92,140,92,0.14);
-  --t1:  #1e2d1e;
-  --t2:  rgba(30,45,30,0.62);
-  --t3:  rgba(30,45,30,0.35);
+  --t1:  #0d1a0d;
+  --t2:  #3d5c3d;
+  --t3:  #6b8c6b;
   --surface:   #f8faf6;
   --surface-2: #f2f6ef;
   --surface-3: #e4ece0;
